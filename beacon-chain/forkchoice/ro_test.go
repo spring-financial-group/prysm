@@ -40,6 +40,7 @@ const (
 	lastRootCalled
 	targetRootForEpochCalled
 	parentRootCalled
+	getPTCVoteCalled
 )
 
 func _discard(t *testing.T, e error) {
@@ -308,4 +309,9 @@ func (ro *mockROForkchoice) TargetRootForEpoch(_ [32]byte, _ primitives.Epoch) (
 func (ro *mockROForkchoice) ParentRoot(_ [32]byte) ([32]byte, error) {
 	ro.calls = append(ro.calls, parentRootCalled)
 	return [32]byte{}, nil
+}
+
+func (ro *mockROForkchoice) GetPTCVote() primitives.PTCStatus {
+	ro.calls = append(ro.calls, getPTCVoteCalled)
+	return primitives.PAYLOAD_ABSENT
 }
