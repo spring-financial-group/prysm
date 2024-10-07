@@ -18,6 +18,7 @@ const (
 	rlockCalled
 	runlockCalled
 	hasNodeCalled
+	hasHashCalled
 	proposerBoostCalled
 	isCanonicalCalled
 	finalizedCheckpointCalled
@@ -195,6 +196,11 @@ func (ro *mockROForkchoice) RUnlock() {
 
 func (ro *mockROForkchoice) HasNode(_ [32]byte) bool {
 	ro.calls = append(ro.calls, hasNodeCalled)
+	return false
+}
+
+func (ro *mockROForkchoice) HasHash(_ [32]byte) bool {
+	ro.calls = append(ro.calls, hasHashCalled)
 	return false
 }
 
