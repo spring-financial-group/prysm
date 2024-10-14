@@ -863,7 +863,7 @@ func (b *BeaconNode) registerSyncService(initialSyncComplete chan struct{}, bFil
 		regularsync.WithPayloadAttestationCache(b.payloadAttestationCache),
 		regularsync.WithExecutionPayloadHeaderCache(b.executionHeaderCache),
 		regularsync.WithPayloadEnvelopeCache(b.payloadEnvelopeCache),
-		regularsync.WithPayloadReconstructor(web3Service),
+		regularsync.WithReconstructor(web3Service),
 		regularsync.WithClockWaiter(b.clockWaiter),
 		regularsync.WithInitialSyncComplete(initialSyncComplete),
 		regularsync.WithStateNotifier(b),

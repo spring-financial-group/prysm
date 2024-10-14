@@ -59,6 +59,7 @@ type BeaconState struct {
 	nextWithdrawalIndex          uint64
 	nextWithdrawalValidatorIndex primitives.ValidatorIndex
 	historicalSummaries          []*ethpb.HistoricalSummary
+
 	// ePBS fields
 	previousInclusionListProposer primitives.ValidatorIndex
 	previousInclusionListSlot     primitives.Slot
