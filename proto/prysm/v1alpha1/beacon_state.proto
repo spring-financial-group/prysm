@@ -634,3 +634,4 @@ message BeaconStateElectra {
   repeated PendingConsolidation pending_consolidations = 12009
       [ (ethereum.eth.ext.ssz_max) = "pending_consolidations_limit" ];
 }
+
