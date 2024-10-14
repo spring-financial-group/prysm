@@ -286,6 +286,9 @@ func (b *BeaconState) ToProto() interface{} {
 		inactivityScores = b.inactivityScoresVal()
 	}
 
+	LatestBlockHashCopy := b.latestBlockHash
+	lastWithdrawalsRootCopy := b.lastWithdrawalsRoot
+
 	switch b.version {
 	case version.Phase0:
 		return &ethpb.BeaconState{
