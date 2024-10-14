@@ -262,7 +262,7 @@ func (b *BeaconState) ToProtoUnsafe() interface{} {
 			PendingConsolidations:         b.pendingConsolidations,
 			LatestBlockHash:               b.latestBlockHash[:],
 			LatestFullSlot:                b.latestFullSlot,
-			LatestExecutionPayloadHeader:  b.latestExecutionPayloadHeaderEPBS,
+			LatestExecutionPayloadHeader:  b.executionPayloadHeader,
 			LastWithdrawalsRoot:           b.lastWithdrawalsRoot[:],
 		}
 	default:

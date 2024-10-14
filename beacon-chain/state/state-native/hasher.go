@@ -266,7 +266,7 @@ func ComputeFieldRootsWithHasher(ctx context.Context, state *BeaconState) ([][]b
 
 	if state.version == version.EPBS {
 		// Execution payload header root.
-		executionPayloadRoot, err := state.latestExecutionPayloadHeaderEPBS.HashTreeRoot()
+		executionPayloadRoot, err := state.executionPayloadHeader.HashTreeRoot()
 		if err != nil {
 			return nil, err
 		}
