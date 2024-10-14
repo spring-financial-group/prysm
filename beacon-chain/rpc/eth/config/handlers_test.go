@@ -567,6 +567,8 @@ func TestGetSpec(t *testing.T) {
 				assert.Equal(t, "102", v)
 			case "BLOB_SIDECAR_SUBNET_COUNT_ELECTRA":
 				assert.Equal(t, "103", v)
+			case "MIN_BUILDER_BALANCE":
+				assert.Equal(t, "0", v)
 			default:
 				for _, pf := range placeholderFields {
 					if k == pf {
