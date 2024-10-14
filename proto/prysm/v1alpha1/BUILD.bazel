@@ -198,8 +198,6 @@ ssz_epbs_objs = [
 	"PayloadAttestationData",
 	"PayloadAttestation",
 	"PayloadAttestationMessage",
-	"BuilderBid",
-	"DepositSnapshot",
 	"SignedBlindPayloadEnvelope",
 	"BlindPayloadEnvelope",
 ]
