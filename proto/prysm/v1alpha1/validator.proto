@@ -668,9 +668,12 @@ message DutiesResponse {
     // sync committee duty.
     bool is_sync_committee = 8;
 
-    // The number of committees in the duty's slot.
-    uint64 committees_at_slot = 9;
-  }
+        // The number of committees in the duty's slot.
+        uint64 committees_at_slot = 9;
+
+        // Slot at which a validator attest to payload attestation timeliness.
+        uint64 ptc_slot = 10 [(ethereum.eth.ext.cast_type) = "github.com/prysmaticlabs/prysm/v5/consensus-types/primitives.Slot"];
+    }
 }
 
 message BlockRequest {
