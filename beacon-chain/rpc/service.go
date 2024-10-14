@@ -122,6 +122,7 @@ type Config struct {
 	TrackedValidatorsCache     *cache.TrackedValidatorsCache
 	PayloadIDCache             *cache.PayloadIDCache
 	PayloadAttestationReceiver blockchain.PayloadAttestationReceiver
+	ExecutionPayloadReceiver   blockchain.ExecutionPayloadReceiver
 }
 
 // NewService instantiates a new RPC service instance that will
@@ -235,6 +236,8 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 		P2P:                        s.cfg.Broadcaster,
 		BlockReceiver:              s.cfg.BlockReceiver,
 		BlobReceiver:               s.cfg.BlobReceiver,
+		PayloadAttestationReceiver: s.cfg.PayloadAttestationReceiver,
+		ExecutionPayloadReceiver:   s.cfg.ExecutionPayloadReceiver,
 		MockEth1Votes:              s.cfg.MockEth1Votes,
 		Eth1BlockFetcher:           s.cfg.ExecutionChainService,
 		PendingDepositsFetcher:     s.cfg.PendingDepositFetcher,
@@ -251,7 +254,6 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 		TrackedValidatorsCache:     s.cfg.TrackedValidatorsCache,
 		PayloadIDCache:             s.cfg.PayloadIDCache,
 		AttestationStateFetcher:    s.cfg.AttestationReceiver,
-		PayloadAttestationReceiver: s.cfg.PayloadAttestationReceiver,
 	}
 	s.validatorServer = validatorServer
 	nodeServer := &nodev1alpha1.Server{

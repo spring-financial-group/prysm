@@ -1017,6 +1017,7 @@ func (b *BeaconNode) registerRPCService(router *http.ServeMux) error {
 		TrackedValidatorsCache:     b.trackedValidatorsCache,
 		PayloadIDCache:             b.payloadIDCache,
 		PayloadAttestationReceiver: chainService,
+		ExecutionPayloadReceiver:   chainService,
 	})
 
 	return b.services.RegisterService(rpcService)
