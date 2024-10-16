@@ -193,10 +193,15 @@ ssz_fulu_objs = [
 
 ssz_epbs_objs = [
 	"BeaconBlockEpbs",
+	"BeaconStateEPBS",
 	"SignedBeaconBlockEpbs",
 	"PayloadAttestationData",
 	"PayloadAttestation",
 	"PayloadAttestationMessage",
+	"BuilderBid",
+	"DepositSnapshot",
+	"SignedBlindPayloadEnvelope",
+	"BlindPayloadEnvelope",
 ]
 
 ssz_gen_marshal(
@@ -415,6 +420,7 @@ ssz_proto_files(
         "data_columns.proto",
         "light_client.proto",
         "payload_attestation.proto",
+        "blind_payload_envelope.proto",
         "sync_committee.proto",
         "withdrawals.proto",
     ],
