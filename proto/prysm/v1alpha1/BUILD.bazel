@@ -192,8 +192,8 @@ ssz_fulu_objs = [
 ]
 
 ssz_epbs_objs = [
-	"BeaconBlockePBS",
-	"SignedBeaconBlockePBS",
+	"BeaconBlockEpbs",
+	"SignedBeaconBlockEpbs",
 	"PayloadAttestationData",
 	"PayloadAttestation",
 	"PayloadAttestationMessage",
