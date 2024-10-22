@@ -567,6 +567,16 @@ func TestGetSpec(t *testing.T) {
 				assert.Equal(t, "102", v)
 			case "BLOB_SIDECAR_SUBNET_COUNT_ELECTRA":
 				assert.Equal(t, "103", v)
+			case "PROPOSER_SCORE_BOOST_EPBS":
+				assert.Equal(t, "20", v)
+			case "PAYLOAD_REVEAL_BOOST":
+				assert.Equal(t, "40", v)
+			case "PAYLOAD_WITHHOLD_BOOST":
+				assert.Equal(t, "40", v)
+			case "PAYLOAD_TIMELY_THRESHOLD":
+				assert.Equal(t, "256", v)
+			case "INTERVALS_PER_SLOT_EPBS":
+				assert.Equal(t, "4", v)
 			case "MIN_BUILDER_BALANCE":
 				assert.Equal(t, "0", v)
 			default:
