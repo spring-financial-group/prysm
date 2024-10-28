@@ -130,6 +130,7 @@ type Service struct {
 	seenPendingBlocks                map[[32]byte]bool
 	blkRootToPendingAtts             map[[32]byte][]ethpb.SignedAggregateAttAndProof
 	subHandler                       *subTopicHandler
+	payloadAttestationCache          *cache.PayloadAttestationCache
 	pendingAttsLock                  sync.RWMutex
 	pendingQueueLock                 sync.RWMutex
 	chainStarted                     *abool.AtomicBool
@@ -162,6 +163,7 @@ type Service struct {
 	initialSyncComplete              chan struct{}
 	verifierWaiter                   *verification.InitializerWaiter
 	newBlobVerifier                  verification.NewBlobVerifier
+	newPayloadAttestationVerifier    verification.NewPayloadAttestationMsgVerifier
 	availableBlocker                 coverage.AvailableBlocker
 	ctxMap                           ContextByteVersions
 }
