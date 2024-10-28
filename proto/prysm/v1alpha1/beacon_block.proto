@@ -17,6 +17,7 @@ package ethereum.eth.v1alpha1;
 
 import "proto/eth/ext/options.proto";
 import "proto/prysm/v1alpha1/attestation.proto";
+import "proto/prysm/v1alpha1/payload_attestation.proto";
 import "proto/prysm/v1alpha1/withdrawals.proto";
 import "proto/engine/v1/execution_engine.proto";
 import "proto/engine/v1/electra.proto";
