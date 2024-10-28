@@ -1078,7 +1078,6 @@ func (b *BeaconState) Copy() state.BeaconState {
 		latestExecutionPayloadHeader:        b.latestExecutionPayloadHeader.Copy(),
 		latestExecutionPayloadHeaderCapella: b.latestExecutionPayloadHeaderCapella.Copy(),
 		latestExecutionPayloadHeaderDeneb:   b.latestExecutionPayloadHeaderDeneb.Copy(),
-		executionPayloadHeader:              b.executionPayloadHeaderVal(),
 		latestExecutionPayloadHeaderEPBS:    b.executionPayloadHeaderVal(),
 
 		id: types.Enumerator.Inc(),

@@ -47,24 +47,26 @@ import (
 // Service represents a service that handles the internal
 // logic of managing the full PoS beacon chain.
 type Service struct {
-	cfg                  *config
-	ctx                  context.Context
-	cancel               context.CancelFunc
-	genesisTime          time.Time
-	head                 *head
-	headLock             sync.RWMutex
-	originBlockRoot      [32]byte // genesis root, or weak subjectivity checkpoint root, depending on how the node is initialized
-	boundaryRoots        [][32]byte
-	checkpointStateCache *cache.CheckpointStateCache
-	initSyncBlocks       map[[32]byte]interfaces.ReadOnlySignedBeaconBlock
-	initSyncBlocksLock   sync.RWMutex
-	wsVerifier           *WeakSubjectivityVerifier
-	clockSetter          startup.ClockSetter
-	clockWaiter          startup.ClockWaiter
-	syncComplete         chan struct{}
-	blobNotifiers        *blobNotifierMap
-	blockBeingSynced     *currentlySyncingBlock
-	blobStorage          *filesystem.BlobStorage
+	cfg                           *config
+	ctx                           context.Context
+	cancel                        context.CancelFunc
+	genesisTime                   time.Time
+	head                          *head
+	headLock                      sync.RWMutex
+	originBlockRoot               [32]byte // genesis root, or weak subjectivity checkpoint root, depending on how the node is initialized
+	boundaryRoots                 [][32]byte
+	checkpointStateCache          *cache.CheckpointStateCache
+	initSyncBlocks                map[[32]byte]interfaces.ReadOnlySignedBeaconBlock
+	initSyncBlocksLock            sync.RWMutex
+	wsVerifier                    *WeakSubjectivityVerifier
+	clockSetter                   startup.ClockSetter
+	clockWaiter                   startup.ClockWaiter
+	syncComplete                  chan struct{}
+	blobNotifiers                 *blobNotifierMap
+	blockBeingSynced              *currentlySyncingBlock
+	lastPublishedLightClientEpoch primitives.Epoch
+	blobStorage                   *filesystem.BlobStorage
+	payloadBeingSynced            *currentlySyncingPayload
 }
 
 // config options for the service.
@@ -183,6 +185,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 		blobNotifiers:        bn,
 		cfg:                  &config{},
 		blockBeingSynced:     &currentlySyncingBlock{roots: make(map[[32]byte]struct{})},
+		payloadBeingSynced:   &currentlySyncingPayload{roots: make(map[[32]byte]struct{})},
 	}
 	for _, opt := range opts {
 		if err := opt(srv); err != nil {
@@ -558,7 +561,7 @@ func (s *Service) saveGenesisData(ctx context.Context, genesisState state.Beacon
 // 2.) Check DB.
 // Checking 1.) is ten times faster than checking 2.)
 // this function requires a lock in forkchoice
-func (s *Service) hasBlock(ctx context.Context, root [32]byte) bool {
+func (s *Service) chainHasBlock(ctx context.Context, root [32]byte) bool {
 	if s.cfg.ForkChoiceStore.HasNode(root) {
 		return true
 	}
