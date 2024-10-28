@@ -135,7 +135,14 @@ func WithSlasherBlockHeadersFeed(slasherBlockHeadersFeed *event.Feed) Option {
 	}
 }
 
-func WithReconstructor(r execution.Reconstructor) Option {
+func WithPayloadAttestationCache(r *cache.PayloadAttestationCache) Option {
+	return func(s *Service) error {
+		s.payloadAttestationCache = r
+		return nil
+	}
+}
+
+func WithPayloadReconstructor(r execution.PayloadReconstructor) Option {
 	return func(s *Service) error {
 		s.cfg.executionReconstructor = r
 		return nil
