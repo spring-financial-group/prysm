@@ -45,14 +45,14 @@ func (s *Store) SaveLightClientBootstrap(ctx context.Context, blockRoot []byte, 
 	})
 }
 
-func (s *Store) LightClientBootstrap(ctx context.Context, blockRoot [32]byte) (interfaces.LightClientBootstrap, error) {
+func (s *Store) LightClientBootstrap(ctx context.Context, blockRoot []byte) (interfaces.LightClientBootstrap, error) {
 	_, span := trace.StartSpan(ctx, "BeaconDB.LightClientBootstrap")
 	defer span.End()
 
 	var bootstrap interfaces.LightClientBootstrap
 	err := s.db.View(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(lightClientBootstrapBucket)
-		enc := bkt.Get(blockRoot[:])
+		enc := bkt.Get(blockRoot)
 		if enc == nil {
 			return nil
 		}

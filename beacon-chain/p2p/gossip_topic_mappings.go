@@ -31,6 +31,9 @@ var gossipTopicMappings = map[string]func() proto.Message{
 func GossipTopicMappings(topic string, epoch primitives.Epoch) proto.Message {
 	switch topic {
 	case BlockSubnetTopicFormat:
+		if epoch >= params.BeaconConfig().FuluForkEpoch {
+			return &ethpb.SignedBeaconBlockFulu{}
+		}
 		if epoch >= params.BeaconConfig().ElectraForkEpoch {
 			return &ethpb.SignedBeaconBlockElectra{}
 		}
@@ -112,22 +115,30 @@ func init() {
 	for k, v := range gossipTopicMappings {
 		GossipTypeMapping[reflect.TypeOf(v())] = k
 	}
+
 	// Specially handle Altair objects.
 	GossipTypeMapping[reflect.TypeOf(&ethpb.SignedBeaconBlockAltair{})] = BlockSubnetTopicFormat
+
 	// Specially handle Bellatrix objects.
 	GossipTypeMapping[reflect.TypeOf(&ethpb.SignedBeaconBlockBellatrix{})] = BlockSubnetTopicFormat
+
 	// Specially handle Capella objects.
 	GossipTypeMapping[reflect.TypeOf(&ethpb.SignedBeaconBlockCapella{})] = BlockSubnetTopicFormat
 	GossipTypeMapping[reflect.TypeOf(&ethpb.LightClientOptimisticUpdateCapella{})] = LightClientOptimisticUpdateTopicFormat
 	GossipTypeMapping[reflect.TypeOf(&ethpb.LightClientFinalityUpdateCapella{})] = LightClientFinalityUpdateTopicFormat
+
 	// Specially handle Deneb objects.
 	GossipTypeMapping[reflect.TypeOf(&ethpb.SignedBeaconBlockDeneb{})] = BlockSubnetTopicFormat
 	GossipTypeMapping[reflect.TypeOf(&ethpb.LightClientOptimisticUpdateDeneb{})] = LightClientOptimisticUpdateTopicFormat
 	GossipTypeMapping[reflect.TypeOf(&ethpb.LightClientFinalityUpdateDeneb{})] = LightClientFinalityUpdateTopicFormat
+
 	// Specially handle Electra objects.
 	GossipTypeMapping[reflect.TypeOf(&ethpb.SignedBeaconBlockElectra{})] = BlockSubnetTopicFormat
 	GossipTypeMapping[reflect.TypeOf(&ethpb.AttestationElectra{})] = AttestationSubnetTopicFormat
 	GossipTypeMapping[reflect.TypeOf(&ethpb.AttesterSlashingElectra{})] = AttesterSlashingSubnetTopicFormat
 	GossipTypeMapping[reflect.TypeOf(&ethpb.SignedAggregateAttestationAndProofElectra{})] = AggregateAndProofSubnetTopicFormat
 	GossipTypeMapping[reflect.TypeOf(&ethpb.LightClientFinalityUpdateElectra{})] = LightClientFinalityUpdateTopicFormat
+
+	// Specially handle Fulu objects.
+	GossipTypeMapping[reflect.TypeOf(&ethpb.SignedBeaconBlockFulu{})] = BlockSubnetTopicFormat
 }

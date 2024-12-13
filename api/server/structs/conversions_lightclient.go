@@ -11,40 +11,6 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/runtime/version"
 )
 
-func LightClientBootsrapFromConsensus(bootstrap interfaces.LightClientBootstrap) (*LightClientBootstrap, error) {
-	header, err := lightClientHeaderToJSON(bootstrap.Header())
-	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal light client header")
-	}
-
-	var jsonBranch []string
-	if bootstrap.Version() >= version.Electra {
-		branch, err := bootstrap.CurrentSyncCommitteeBranchElectra()
-		if err != nil {
-			return nil, err
-		}
-		jsonBranch = make([]string, len(branch))
-		for i, item := range branch {
-			jsonBranch[i] = hexutil.Encode(item[:])
-		}
-	} else {
-		branch, err := bootstrap.CurrentSyncCommitteeBranch()
-		if err != nil {
-			return nil, err
-		}
-		jsonBranch = make([]string, len(branch))
-		for i, item := range branch {
-			jsonBranch[i] = hexutil.Encode(item[:])
-		}
-	}
-
-	return &LightClientBootstrap{
-		Header:                     header,
-		CurrentSyncCommittee:       SyncCommitteeFromConsensus(bootstrap.CurrentSyncCommittee()),
-		CurrentSyncCommitteeBranch: jsonBranch,
-	}, nil
-}
-
 func LightClientUpdateFromConsensus(update interfaces.LightClientUpdate) (*LightClientUpdate, error) {
 	attestedHeader, err := lightClientHeaderToJSON(update.AttestedHeader())
 	if err != nil {
@@ -214,7 +180,7 @@ func lightClientHeaderToJSON(header interfaces.LightClientHeader) (json.RawMessa
 		if !ok {
 			return nil, fmt.Errorf("execution data is not %T", &enginev1.ExecutionPayloadHeaderDeneb{})
 		}
-		execution, err := ExecutionPayloadHeaderDenebFromConsensus(ex)
+		execution, err := ExecutionPayloadHeaderElectraFromConsensus(ex)
 		if err != nil {
 			return nil, err
 		}

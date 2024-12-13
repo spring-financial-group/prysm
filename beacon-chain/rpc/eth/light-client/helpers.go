@@ -11,21 +11,6 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/interfaces"
 )
 
-func createLightClientBootstrap(
-	ctx context.Context,
-	currentSlot primitives.Slot,
-	state state.BeaconState,
-	block interfaces.ReadOnlySignedBeaconBlock,
-) (*structs.LightClientBootstrap, error) {
-
-	bootstrap, err := lightclient.CreateLightClientBootstrap(ctx, currentSlot, state, block)
-	if err != nil {
-		return nil, err
-	}
-
-	return structs.LightClientBootstrapFromConsensus(bootstrap)
-}
-
 func newLightClientFinalityUpdateFromBeaconState(
 	ctx context.Context,
 	currentSlot primitives.Slot,

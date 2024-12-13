@@ -14,8 +14,6 @@ import (
 	grpcopentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	grpcprometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/pkg/errors"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/blockchain"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/builder"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/cache"
@@ -58,24 +56,6 @@ import (
 
 const attestationBufferSize = 100
 
-var (
-	httpRequestLatency = promauto.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Name:    "http_request_latency_seconds",
-			Help:    "Latency of HTTP requests in seconds",
-			Buckets: []float64{0.001, 0.01, 0.025, 0.1, 0.25, 1, 2.5, 10},
-		},
-		[]string{"endpoint", "code", "method"},
-	)
-	httpRequestCount = promauto.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "http_request_count",
-			Help: "Number of HTTP requests",
-		},
-		[]string{"endpoint", "code", "method"},
-	)
-)
-
 // Service defining an RPC server for a beacon node.
 type Service struct {
 	cfg                  *Config
@@ -116,6 +96,7 @@ type Config struct {
 	GenesisFetcher            blockchain.GenesisFetcher
 	MockEth1Votes             bool
 	EnableDebugRPCEndpoints   bool
+	AttestationCache          *cache.AttestationCache
 	AttestationsPool          attestations.Pool
 	ExitPool                  voluntaryexits.PoolManager
 	SlashingsPool             slashings.PoolManager
@@ -225,7 +206,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 		Broadcaster:           s.cfg.Broadcaster,
 		SyncCommitteePool:     s.cfg.SyncCommitteeObjectPool,
 		OperationNotifier:     s.cfg.OperationNotifier,
-		AttestationCache:      cache.NewAttestationCache(),
+		AttestationCache:      cache.NewAttestationDataCache(),
 		StateGen:              s.cfg.StateGen,
 		P2P:                   s.cfg.Broadcaster,
 		FinalizedFetcher:      s.cfg.FinalizationFetcher,
@@ -234,6 +215,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 	}
 	validatorServer := &validatorv1alpha1.Server{
 		Ctx:                    s.ctx,
+		AttestationCache:       s.cfg.AttestationCache,
 		AttPool:                s.cfg.AttestationsPool,
 		ExitPool:               s.cfg.ExitPool,
 		HeadFetcher:            s.cfg.HeadFetcher,
@@ -288,6 +270,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 	beaconChainServer := &beaconv1alpha1.Server{
 		Ctx:                         s.ctx,
 		BeaconDB:                    s.cfg.BeaconDB,
+		AttestationCache:            s.cfg.AttestationCache,
 		AttestationsPool:            s.cfg.AttestationsPool,
 		SlashingsPool:               s.cfg.SlashingsPool,
 		OptimisticModeFetcher:       s.cfg.OptimisticModeFetcher,

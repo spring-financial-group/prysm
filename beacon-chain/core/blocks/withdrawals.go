@@ -100,8 +100,11 @@ func ValidateBLSToExecutionChange(st state.ReadOnlyBeaconState, signed *ethpb.Si
 	if err != nil {
 		return nil, err
 	}
+	if val == nil {
+		return nil, errors.Wrap(errInvalidWithdrawalCredentials, "validator is nil") // This should not be possible.
+	}
 	cred := val.WithdrawalCredentials
-	if cred[0] != params.BeaconConfig().BLSWithdrawalPrefixByte {
+	if len(cred) < 2 || cred[0] != params.BeaconConfig().BLSWithdrawalPrefixByte {
 		return nil, errInvalidBLSPrefix
 	}
 
@@ -193,7 +196,7 @@ func ProcessWithdrawals(st state.BeaconState, executionData interfaces.Execution
 	}
 
 	if st.Version() >= version.Electra {
-		if err := st.DequeuePartialWithdrawals(processedPartialWithdrawalsCount); err != nil {
+		if err := st.DequeuePendingPartialWithdrawals(processedPartialWithdrawalsCount); err != nil {
 			return nil, fmt.Errorf("unable to dequeue partial withdrawals from state: %w", err)
 		}
 	}

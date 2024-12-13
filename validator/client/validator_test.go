@@ -2874,7 +2874,7 @@ func TestUpdateValidatorStatusCache(t *testing.T) {
 		beaconNodeHosts:  []string{"http://localhost:8080", "http://localhost:8081"},
 		currentHostIndex: 0,
 		pubkeyToStatus: map[[fieldparams.BLSPubkeyLength]byte]*validatorStatus{
-			[fieldparams.BLSPubkeyLength]byte{0x03}: &validatorStatus{ // add non existant key and status to cache, should be fully removed on update
+			[fieldparams.BLSPubkeyLength]byte{0x03}: &validatorStatus{ // add non existent key and status to cache, should be fully removed on update
 				publicKey: []byte{0x03},
 				status: &ethpb.ValidatorStatusResponse{
 					Status: ethpb.ValidatorStatus_ACTIVE,
@@ -2887,7 +2887,7 @@ func TestUpdateValidatorStatusCache(t *testing.T) {
 	err := v.updateValidatorStatusCache(ctx, pubkeys)
 	assert.NoError(t, err)
 
-	// make sure the nonexistant key is fully removed
+	// make sure the nonexistent key is fully removed
 	_, ok := v.pubkeyToStatus[[fieldparams.BLSPubkeyLength]byte{0x03}]
 	require.Equal(t, false, ok)
 	// make sure we only have the added values
@@ -2899,4 +2899,9 @@ func TestUpdateValidatorStatusCache(t *testing.T) {
 		require.Equal(t, mockResponse.Statuses[i], status.status)
 		require.Equal(t, mockResponse.Indices[i], status.index)
 	}
+
+	err = v.updateValidatorStatusCache(ctx, nil)
+	assert.NoError(t, err)
+	// make sure the value is 0
+	assert.Equal(t, 0, len(v.pubkeyToStatus))
 }

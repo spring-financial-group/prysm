@@ -33,6 +33,7 @@ type LightClientBootstrap interface {
 	CurrentSyncCommitteeBranch() (LightClientSyncCommitteeBranch, error)
 	SetCurrentSyncCommitteeBranch(branch [][]byte) error
 	CurrentSyncCommitteeBranchElectra() (LightClientSyncCommitteeBranchElectra, error)
+	SetCurrentSyncCommitteeBranch(branch [][]byte) error
 }
 
 type LightClientUpdate interface {

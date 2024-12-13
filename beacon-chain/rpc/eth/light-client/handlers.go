@@ -11,6 +11,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/api/server/structs"
 	lightclient "github.com/prysmaticlabs/prysm/v5/beacon-chain/core/light-client"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/rpc/eth/shared"
+	"github.com/prysmaticlabs/prysm/v5/config/features"
 	"github.com/prysmaticlabs/prysm/v5/config/params"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/v5/monitoring/tracing/trace"
@@ -21,6 +22,11 @@ import (
 
 // GetLightClientBootstrap - implements https://github.com/ethereum/beacon-APIs/blob/263f4ed6c263c967f13279c7a9f5629b51c5fc55/apis/beacon/light_client/bootstrap.yaml
 func (s *Server) GetLightClientBootstrap(w http.ResponseWriter, req *http.Request) {
+	if !features.Get().EnableLightClient {
+		httputil.HandleError(w, "Light client feature flag is not enabled", http.StatusNotFound)
+		return
+	}
+
 	// Prepare
 	ctx, span := trace.StartSpan(req.Context(), "beacon.GetLightClientBootstrap")
 	defer span.End()
@@ -50,7 +56,7 @@ func (s *Server) GetLightClientBootstrap(w http.ResponseWriter, req *http.Reques
 		httputil.HandleError(w, "could not get light client bootstrap: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	
 	w.Header().Set(api.VersionHeader, version.String(bootstrap.Version()))
 
 	if httputil.RespondWithSsz(req) {
@@ -61,7 +67,7 @@ func (s *Server) GetLightClientBootstrap(w http.ResponseWriter, req *http.Reques
 		}
 		httputil.WriteSsz(w, ssz, "light_client_bootstrap.ssz")
 	} else {
-		data, err := structs.LightClientBootsrapFromConsensus(bootstrap)
+		data, err := structs.LightClientBootstrapFromConsensus(bootstrap)
 		if err != nil {
 			httputil.HandleError(w, "could not marshal bootstrap to JSON: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -76,26 +82,21 @@ func (s *Server) GetLightClientBootstrap(w http.ResponseWriter, req *http.Reques
 
 // GetLightClientUpdatesByRange - implements https://github.com/ethereum/beacon-APIs/blob/263f4ed6c263c967f13279c7a9f5629b51c5fc55/apis/beacon/light_client/updates.yaml
 func (s *Server) GetLightClientUpdatesByRange(w http.ResponseWriter, req *http.Request) {
-	// Prepare
+	if !features.Get().EnableLightClient {
+		httputil.HandleError(w, "Light client feature flag is not enabled", http.StatusNotFound)
+		return
+	}
+
 	ctx, span := trace.StartSpan(req.Context(), "beacon.GetLightClientUpdatesByRange")
 	defer span.End()
 
-	// Determine slots per period
 	config := params.BeaconConfig()
-	slotsPerPeriod := uint64(config.EpochsPerSyncCommitteePeriod) * uint64(config.SlotsPerEpoch)
 
-	// Adjust count based on configuration
 	_, count, gotCount := shared.UintFromQuery(w, req, "count", true)
 	if !gotCount {
 		return
 	} else if count == 0 {
-		httputil.HandleError(w, fmt.Sprintf("got invalid 'count' query variable '%d': count must be greater than 0", count), http.StatusInternalServerError)
-		return
-	}
-
-	// Determine the start and end periods
-	_, startPeriod, gotStartPeriod := shared.UintFromQuery(w, req, "start_period", true)
-	if !gotStartPeriod {
+		httputil.HandleError(w, fmt.Sprintf("Got invalid 'count' query variable '%d': count must be greater than 0", count), http.StatusBadRequest)
 		return
 	}
 
@@ -103,32 +104,12 @@ func (s *Server) GetLightClientUpdatesByRange(w http.ResponseWriter, req *http.R
 		count = config.MaxRequestLightClientUpdates
 	}
 
-	// max possible slot is current head
-	headState, err := s.HeadFetcher.HeadState(ctx)
-	if err != nil {
-		httputil.HandleError(w, "could not get head state: "+err.Error(), http.StatusInternalServerError)
+	_, startPeriod, gotStartPeriod := shared.UintFromQuery(w, req, "start_period", true)
+	if !gotStartPeriod {
 		return
 	}
 
-	maxSlot := uint64(headState.Slot())
-
-	// min possible slot is Altair fork period
-	minSlot := uint64(config.AltairForkEpoch) * uint64(config.SlotsPerEpoch)
-
-	// Adjust startPeriod, the end of start period must be later than Altair fork epoch, otherwise, can not get the sync committee votes
-	startPeriodEndSlot := (startPeriod+1)*slotsPerPeriod - 1
-	if startPeriodEndSlot < minSlot {
-		startPeriod = minSlot / slotsPerPeriod
-	}
-
-	// Get the initial endPeriod, then we will adjust
 	endPeriod := startPeriod + count - 1
-
-	// Adjust endPeriod, the end of end period must be earlier than current head slot
-	endPeriodEndSlot := (endPeriod+1)*slotsPerPeriod - 1
-	if endPeriodEndSlot > maxSlot {
-		endPeriod = maxSlot / slotsPerPeriod
-	}
 
 	// get updates
 	updatesMap, err := s.BeaconDB.LightClientUpdates(ctx, startPeriod, endPeriod)
@@ -151,21 +132,23 @@ func (s *Server) GetLightClientUpdatesByRange(w http.ResponseWriter, req *http.R
 			httputil.HandleError(w, "Could not convert light client update: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 		updateResponse := &structs.LightClientUpdateResponse{
 			Version: version.String(update.Version()),
 			Data:    updateJson,
 		}
-
 		updates = append(updates, updateResponse)
 	}
-
 	httputil.WriteJson(w, updates)
 }
 
 // GetLightClientFinalityUpdate - implements https://github.com/ethereum/beacon-APIs/blob/263f4ed6c263c967f13279c7a9f5629b51c5fc55/apis/beacon/light_client/finality_update.yaml
 func (s *Server) GetLightClientFinalityUpdate(w http.ResponseWriter, req *http.Request) {
-	_, span := trace.StartSpan(req.Context(), "beacon.GetLightClientFinalityUpdate")
+	if !features.Get().EnableLightClient {
+		httputil.HandleError(w, "Light client feature flag is not enabled", http.StatusNotFound)
+		return
+	}
+
+	ctx, span := trace.StartSpan(req.Context(), "beacon.GetLightClientFinalityUpdate")
 	defer span.End()
 
 	update := s.LCStore.LastLCFinalityUpdate
@@ -199,7 +182,12 @@ func (s *Server) GetLightClientFinalityUpdate(w http.ResponseWriter, req *http.R
 
 // GetLightClientOptimisticUpdate - implements https://github.com/ethereum/beacon-APIs/blob/263f4ed6c263c967f13279c7a9f5629b51c5fc55/apis/beacon/light_client/optimistic_update.yaml
 func (s *Server) GetLightClientOptimisticUpdate(w http.ResponseWriter, req *http.Request) {
-	_, span := trace.StartSpan(req.Context(), "beacon.GetLightClientOptimisticUpdate")
+	if !features.Get().EnableLightClient {
+		httputil.HandleError(w, "Light client feature flag is not enabled", http.StatusNotFound)
+		return
+	}
+
+	ctx, span := trace.StartSpan(req.Context(), "beacon.GetLightClientOptimisticUpdate")
 	defer span.End()
 
 	update := s.LCStore.LastLCOptimisticUpdate
