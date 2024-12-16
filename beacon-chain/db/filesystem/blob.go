@@ -258,7 +258,7 @@ func (bs *BlobStorage) Remove(root [32]byte) error {
 // This value can be compared to the commitments observed in a block to determine which indices need to be found
 // on the network to confirm data availability.
 func (bs *BlobStorage) Indices(root [32]byte, s primitives.Slot) ([]bool, error) {
-	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlock(s)
+	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlockBySlot(s)
 	mask := make([]bool, maxBlobsPerBlock)
 
 	rootDir := blobNamer{root: root}.dir()

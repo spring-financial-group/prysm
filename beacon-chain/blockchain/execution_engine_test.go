@@ -23,6 +23,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
 	v1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	ethpb "github.com/prysmaticlabs/prysm/v5/proto/prysm/v1alpha1"
+	"github.com/prysmaticlabs/prysm/v5/runtime/version"
 	"github.com/prysmaticlabs/prysm/v5/testing/assert"
 	"github.com/prysmaticlabs/prysm/v5/testing/require"
 	"github.com/prysmaticlabs/prysm/v5/testing/util"
@@ -867,8 +868,53 @@ func Test_GetPayloadAttributeV3(t *testing.T) {
 				return st
 			}(),
 		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			service, tr := minimalTestService(t, WithPayloadIDCache(cache.NewPayloadIDCache()))
+			ctx := tr.ctx
+
+			attr := service.getPayloadAttribute(ctx, test.st, 0, []byte{})
+			require.Equal(t, true, attr.IsEmpty())
+
+			// Cache hit, advance state, no fee recipient
+			slot := primitives.Slot(1)
+			service.cfg.TrackedValidatorsCache.Set(cache.TrackedValidator{Active: true, Index: 0})
+			service.cfg.PayloadIDCache.Set(slot, [32]byte{}, [8]byte{})
+			attr = service.getPayloadAttribute(ctx, test.st, slot, params.BeaconConfig().ZeroHash[:])
+			require.Equal(t, false, attr.IsEmpty())
+			require.Equal(t, params.BeaconConfig().EthBurnAddressHex, common.BytesToAddress(attr.SuggestedFeeRecipient()).String())
+			a, err := attr.Withdrawals()
+			require.NoError(t, err)
+			require.Equal(t, 0, len(a))
+
+			// Cache hit, advance state, has fee recipient
+			suggestedAddr := common.HexToAddress("123")
+			service.cfg.TrackedValidatorsCache.Set(cache.TrackedValidator{Active: true, FeeRecipient: primitives.ExecutionAddress(suggestedAddr), Index: 0})
+			service.cfg.PayloadIDCache.Set(slot, [32]byte{}, [8]byte{})
+			attr = service.getPayloadAttribute(ctx, test.st, slot, params.BeaconConfig().ZeroHash[:])
+			require.Equal(t, false, attr.IsEmpty())
+			require.Equal(t, suggestedAddr, common.BytesToAddress(attr.SuggestedFeeRecipient()))
+			a, err = attr.Withdrawals()
+			require.NoError(t, err)
+			require.Equal(t, 0, len(a))
+
+			attrV3, err := attr.PbV3()
+			require.NoError(t, err)
+			hr := service.headRoot()
+			require.Equal(t, hr, [32]byte(attrV3.ParentBeaconBlockRoot))
+		})
+	}
+}
+
+func Test_GetPayloadAttributeV4(t *testing.T) {
+	var testCases = []struct {
+		name string
+		st   bstate.BeaconState
+	}{
 		{
-			name: "electra",
+			name: "deneb",
 			st: func() bstate.BeaconState {
 				st, _ := util.DeterministicGenesisStateElectra(t, 1)
 				return st
@@ -906,10 +952,13 @@ func Test_GetPayloadAttributeV3(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, 0, len(a))
 
-			attrV3, err := attr.PbV3()
+			attrV4, err := attr.PbV4()
 			require.NoError(t, err)
 			hr := service.headRoot()
-			require.Equal(t, hr, [32]byte(attrV3.ParentBeaconBlockRoot))
+			require.Equal(t, hr, [32]byte(attrV4.ParentBeaconBlockRoot))
+
+			require.Equal(t, int(attrV4.MaxBlobsPerBlock), params.BeaconConfig().MaxBlobsPerBlockByVersion(version.Electra))
+			require.Equal(t, int(attrV4.TargetBlobsPerBlock), params.BeaconConfig().TargetBlobsPerBlockByVersion(version.Electra))
 		})
 	}
 }

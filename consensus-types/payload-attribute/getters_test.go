@@ -3,6 +3,8 @@ package payloadattribute
 import (
 	"testing"
 
+	"github.com/prysmaticlabs/prysm/v5/config/params"
+	consensus_types "github.com/prysmaticlabs/prysm/v5/consensus-types"
 	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v5/runtime/version"
 	"github.com/prysmaticlabs/prysm/v5/testing/require"
@@ -270,6 +272,79 @@ func TestIsEmpty(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			require.Equal(t, tt.empty, tt.a.IsEmpty())
+		})
+	}
+}
+
+func TestPbV4(t *testing.T) {
+	tests := []struct {
+		name    string
+		a       *data
+		expects *enginev1.PayloadAttributesV4
+		errMsg  string
+	}{
+		{
+			name:    "Nil receiver",
+			a:       nil,
+			expects: nil,
+			errMsg:  errNilPayloadAttribute.Error(),
+		},
+		{
+			name: "Version less than Electra",
+			a: &data{
+				version: version.Deneb,
+			},
+			expects: nil,
+			errMsg:  consensus_types.ErrNotSupported("PbV4", version.Deneb).Error(),
+		},
+		{
+			name: "Empty attributes",
+			a: &data{
+				version: version.Electra,
+			},
+			expects: nil,
+			errMsg:  "",
+		},
+		{
+			name: "All fields populated",
+			a: &data{
+				version:               version.Electra,
+				timeStamp:             12345,
+				prevRandao:            []byte{0x01, 0x02, 0x03},
+				suggestedFeeRecipient: []byte{0x04, 0x05, 0x06},
+				withdrawals: []*enginev1.Withdrawal{
+					{Index: 1},
+					{Index: 2},
+					{Index: 3},
+				},
+				parentBeaconBlockRoot: []byte{0x07, 0x08, 0x09},
+			},
+			expects: &enginev1.PayloadAttributesV4{
+				Timestamp:             12345,
+				PrevRandao:            []byte{0x01, 0x02, 0x03},
+				SuggestedFeeRecipient: []byte{0x04, 0x05, 0x06},
+				Withdrawals: []*enginev1.Withdrawal{
+					{Index: 1},
+					{Index: 2},
+					{Index: 3},
+				},
+				ParentBeaconBlockRoot: []byte{0x07, 0x08, 0x09},
+				TargetBlobsPerBlock:   uint64(params.BeaconConfig().TargetBlobsPerBlockByVersion(version.Electra)),
+				MaxBlobsPerBlock:      uint64(params.BeaconConfig().MaxBlobsPerBlockByVersion(version.Electra)),
+			},
+			errMsg: "",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := test.a.PbV4()
+			if test.errMsg != "" {
+				require.ErrorContains(t, test.errMsg, err)
+			} else {
+				require.NoError(t, err)
+				require.DeepEqual(t, test.expects, got)
+			}
 		})
 	}
 }

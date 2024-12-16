@@ -72,7 +72,7 @@ func (e *cacheEntry) setDiskSummary(sum filesystem.BlobStorageSummary) {
 // Only the first BlobSidecar of a given Index will be kept in the cache.
 // stash will return an error if the given blob is already in the cache, or if the Index is out of bounds.
 func (e *cacheEntry) stash(sc *blocks.ROBlob) error {
-	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlock(sc.Slot())
+	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlockBySlot(sc.Slot())
 	if sc.Index >= uint64(maxBlobsPerBlock) {
 		return errors.Wrapf(errIndexOutOfBounds, "index=%d", sc.Index)
 	}

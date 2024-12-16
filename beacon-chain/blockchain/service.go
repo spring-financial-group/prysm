@@ -111,7 +111,7 @@ type blobNotifierMap struct {
 // notifyIndex notifies a blob by its index for a given root.
 // It uses internal maps to keep track of seen indices and notifier channels.
 func (bn *blobNotifierMap) notifyIndex(root [32]byte, idx uint64, slot primitives.Slot) {
-	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlock(slot)
+	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlockBySlot(slot)
 	if idx >= uint64(maxBlobsPerBlock) {
 		return
 	}
@@ -141,7 +141,7 @@ func (bn *blobNotifierMap) notifyIndex(root [32]byte, idx uint64, slot primitive
 }
 
 func (bn *blobNotifierMap) forRoot(root [32]byte, slot primitives.Slot) chan uint64 {
-	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlock(slot)
+	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlockBySlot(slot)
 	bn.Lock()
 	defer bn.Unlock()
 	c, ok := bn.notifiers[root]

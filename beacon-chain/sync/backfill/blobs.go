@@ -109,7 +109,7 @@ type blobBatchVerifier struct {
 func (bbv *blobBatchVerifier) newVerifier(rb blocks.ROBlob) verification.BlobVerifier {
 	m, ok := bbv.verifiers[rb.BlockRoot()]
 	if !ok {
-		m = make([]verification.BlobVerifier, params.BeaconConfig().MaxBlobsPerBlock(rb.Slot()))
+		m = make([]verification.BlobVerifier, params.BeaconConfig().MaxBlobsPerBlockBySlot(rb.Slot()))
 	}
 	m[rb.Index] = bbv.newBlobVerifier(rb, verification.BackfillBlobSidecarRequirements)
 	bbv.verifiers[rb.BlockRoot()] = m

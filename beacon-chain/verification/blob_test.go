@@ -31,7 +31,7 @@ func TestBlobIndexInBounds(t *testing.T) {
 	require.Equal(t, true, v.results.executed(RequireBlobIndexInBounds))
 	require.NoError(t, v.results.result(RequireBlobIndexInBounds))
 
-	b.Index = uint64(params.BeaconConfig().MaxBlobsPerBlock(0))
+	b.Index = uint64(params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
 	v = ini.NewBlobVerifier(b, GossipBlobSidecarRequirements)
 	require.ErrorIs(t, v.BlobIndexInBounds(), ErrBlobIndexInvalid)
 	require.Equal(t, true, v.results.executed(RequireBlobIndexInBounds))

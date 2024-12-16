@@ -9,7 +9,7 @@ import (
 )
 
 func TestInclusionProofs(t *testing.T) {
-	_, blobs := GenerateTestDenebBlockWithSidecar(t, [32]byte{}, 0, params.BeaconConfig().MaxBlobsPerBlock(0))
+	_, blobs := GenerateTestDenebBlockWithSidecar(t, [32]byte{}, 0, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
 	for i := range blobs {
 		require.NoError(t, blocks.VerifyKZGInclusionProof(blobs[i]))
 	}

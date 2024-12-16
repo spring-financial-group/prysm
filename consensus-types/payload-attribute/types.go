@@ -4,6 +4,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/state"
 	field_params "github.com/prysmaticlabs/prysm/v5/config/fieldparams"
+	"github.com/prysmaticlabs/prysm/v5/config/params"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
@@ -22,6 +23,8 @@ type data struct {
 	suggestedFeeRecipient []byte
 	withdrawals           []*enginev1.Withdrawal
 	parentBeaconBlockRoot []byte
+	targetBlobsPerBlock   int
+	maxBlobsPerBlock      int
 }
 
 var (
@@ -41,6 +44,8 @@ func New(i interface{}) (Attributer, error) {
 		return initPayloadAttributeFromV2(a)
 	case *enginev1.PayloadAttributesV3:
 		return initPayloadAttributeFromV3(a)
+	case *enginev1.PayloadAttributesV4:
+		return initPayloadAttributeFromV4(a)
 	default:
 		return nil, errors.Wrapf(errUnsupportedPayloadAttribute, "unable to create payload attribute from type %T", i)
 	}
@@ -92,6 +97,23 @@ func initPayloadAttributeFromV3(a *enginev1.PayloadAttributesV3) (Attributer, er
 		suggestedFeeRecipient: a.SuggestedFeeRecipient,
 		withdrawals:           a.Withdrawals,
 		parentBeaconBlockRoot: a.ParentBeaconBlockRoot,
+	}, nil
+}
+
+func initPayloadAttributeFromV4(a *enginev1.PayloadAttributesV4) (Attributer, error) {
+	if a == nil {
+		return nil, errNilPayloadAttribute
+	}
+
+	return &data{
+		version:               version.Electra,
+		prevRandao:            a.PrevRandao,
+		timeStamp:             a.Timestamp,
+		suggestedFeeRecipient: a.SuggestedFeeRecipient,
+		withdrawals:           a.Withdrawals,
+		parentBeaconBlockRoot: a.ParentBeaconBlockRoot,
+		targetBlobsPerBlock:   params.BeaconConfig().TargetBlobsPerBlockByVersion(version.Electra),
+		maxBlobsPerBlock:      params.BeaconConfig().MaxBlobsPerBlockByVersion(version.Electra),
 	}, nil
 }
 

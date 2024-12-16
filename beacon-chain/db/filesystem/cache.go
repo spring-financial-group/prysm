@@ -20,7 +20,7 @@ type BlobStorageSummary struct {
 // HasIndex returns true if the BlobSidecar at the given index is available in the filesystem.
 func (s BlobStorageSummary) HasIndex(idx uint64) bool {
 	// Protect from panic, but assume callers are sophisticated enough to not need an error telling them they have an invalid idx.
-	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlock(s.slot)
+	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlockBySlot(s.slot)
 	if idx >= uint64(maxBlobsPerBlock) {
 		return false
 	}
@@ -32,7 +32,7 @@ func (s BlobStorageSummary) HasIndex(idx uint64) bool {
 
 // AllAvailable returns true if we have all blobs for all indices from 0 to count-1.
 func (s BlobStorageSummary) AllAvailable(count int) bool {
-	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlock(s.slot)
+	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlockBySlot(s.slot)
 	if count > maxBlobsPerBlock {
 		return false
 	}
@@ -76,7 +76,7 @@ func (s *blobStorageCache) Summary(root [32]byte) BlobStorageSummary {
 }
 
 func (s *blobStorageCache) ensure(key [32]byte, slot primitives.Slot, idx uint64) error {
-	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlock(slot)
+	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlockBySlot(slot)
 	if idx >= uint64(maxBlobsPerBlock) {
 		return errIndexOutOfBounds
 	}

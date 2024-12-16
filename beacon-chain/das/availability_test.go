@@ -88,7 +88,7 @@ func Test_commitmentsToCheck(t *testing.T) {
 				require.NoError(t, err)
 				c, err := rb.Block().Body().BlobKzgCommitments()
 				require.NoError(t, err)
-				require.Equal(t, true, len(c) > params.BeaconConfig().MaxBlobsPerBlock(sb.Block().Slot()))
+				require.Equal(t, true, len(c) > params.BeaconConfig().MaxBlobsPerBlockBySlot(sb.Block().Slot()))
 				return rb
 			},
 			slot: windowSlots + 1,

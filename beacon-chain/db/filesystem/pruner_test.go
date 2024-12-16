@@ -25,7 +25,7 @@ func TestTryPruneDir_CachedNotExpired(t *testing.T) {
 	pr, err := newBlobPruner(fs, 0)
 	require.NoError(t, err)
 	slot := pr.windowSize
-	_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, [32]byte{}, slot, params.BeaconConfig().MaxBlobsPerBlock(slot))
+	_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, [32]byte{}, slot, params.BeaconConfig().MaxBlobsPerBlockBySlot(slot))
 	sc, err := verification.BlobSidecarNoop(sidecars[0])
 	require.NoError(t, err)
 	rootStr := rootString(sc.BlockRoot())

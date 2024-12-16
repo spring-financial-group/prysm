@@ -136,30 +136,18 @@ func (s *Service) NewPayload(ctx context.Context, payload interfaces.ExecutionDa
 	defer cancel()
 	result := &pb.PayloadStatus{}
 
-	switch payload.Proto().(type) {
+	switch payloadPb := payload.Proto().(type) {
 	case *pb.ExecutionPayload:
-		payloadPb, ok := payload.Proto().(*pb.ExecutionPayload)
-		if !ok {
-			return nil, errors.New("execution data must be a Bellatrix or Capella execution payload")
-		}
 		err := s.rpcClient.CallContext(ctx, result, NewPayloadMethod, payloadPb)
 		if err != nil {
 			return nil, handleRPCError(err)
 		}
 	case *pb.ExecutionPayloadCapella:
-		payloadPb, ok := payload.Proto().(*pb.ExecutionPayloadCapella)
-		if !ok {
-			return nil, errors.New("execution data must be a Capella execution payload")
-		}
 		err := s.rpcClient.CallContext(ctx, result, NewPayloadMethodV2, payloadPb)
 		if err != nil {
 			return nil, handleRPCError(err)
 		}
 	case *pb.ExecutionPayloadDeneb:
-		payloadPb, ok := payload.Proto().(*pb.ExecutionPayloadDeneb)
-		if !ok {
-			return nil, errors.New("execution data must be a Deneb execution payload")
-		}
 		if executionRequests == nil {
 			err := s.rpcClient.CallContext(ctx, result, NewPayloadMethodV3, payloadPb, versionedHashes, parentBlockRoot)
 			if err != nil {
@@ -170,7 +158,7 @@ func (s *Service) NewPayload(ctx context.Context, payload interfaces.ExecutionDa
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to encode execution requests")
 			}
-			err = s.rpcClient.CallContext(ctx, result, NewPayloadMethodV4, payloadPb, versionedHashes, parentBlockRoot, flattenedRequests)
+			err = s.rpcClient.CallContext(ctx, result, NewPayloadMethodV4, payloadPb, versionedHashes, parentBlockRoot, flattenedRequests, params.BeaconConfig().TargetBlobsPerBlockByVersion(version.Electra))
 			if err != nil {
 				return nil, handleRPCError(err)
 			}

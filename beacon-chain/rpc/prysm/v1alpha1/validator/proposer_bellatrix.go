@@ -270,7 +270,7 @@ func (vs *Server) getPayloadHeaderFromBuilder(
 		return nil, errors.Wrap(err, "could not validate builder signature")
 	}
 
-	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlock(slot)
+	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlockBySlot(slot)
 	var kzgCommitments [][]byte
 	if bid.Version() >= version.Deneb {
 		kzgCommitments, err = bid.BlobKzgCommitments()

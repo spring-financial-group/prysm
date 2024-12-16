@@ -625,12 +625,24 @@ func (s *Server) computePayloadAttributes(ctx context.Context, ev payloadattribu
 	if err != nil {
 		return nil, errors.Wrap(err, "could not compute head block root")
 	}
-	return payloadattribute.New(&engine.PayloadAttributesV3{
+	if v < version.Electra {
+		return payloadattribute.New(&engine.PayloadAttributesV3{
+			Timestamp:             timestamp,
+			PrevRandao:            prevRando,
+			SuggestedFeeRecipient: feeRecpt,
+			Withdrawals:           w,
+			ParentBeaconBlockRoot: pr[:],
+		})
+	}
+
+	return payloadattribute.New(&engine.PayloadAttributesV4{
 		Timestamp:             timestamp,
 		PrevRandao:            prevRando,
 		SuggestedFeeRecipient: feeRecpt,
 		Withdrawals:           w,
 		ParentBeaconBlockRoot: pr[:],
+		TargetBlobsPerBlock:   uint64(params.BeaconConfig().TargetBlobsPerBlockByVersion(v)),
+		MaxBlobsPerBlock:      uint64(params.BeaconConfig().MaxBlobsPerBlockByVersion(v)),
 	})
 }
 
@@ -760,12 +772,24 @@ func marshalAttributes(attr payloadattribute.Attributer) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get parent beacon block root from payload attributes event")
 	}
-	return json.Marshal(&structs.PayloadAttributesV3{
+	if v < version.Electra {
+		return json.Marshal(&structs.PayloadAttributesV3{
+			Timestamp:             timestamp,
+			PrevRandao:            prevRandao,
+			SuggestedFeeRecipient: feeRecpt,
+			Withdrawals:           withdrawals,
+			ParentBeaconBlockRoot: hexutil.Encode(parentRoot),
+		})
+	}
+
+	return json.Marshal(&structs.PayloadAttributesV4{
 		Timestamp:             timestamp,
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: feeRecpt,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: hexutil.Encode(parentRoot),
+		TargetBlobsPerBlock:   strconv.FormatUint(uint64(params.BeaconConfig().TargetBlobsPerBlockByVersion(v)), 10),
+		MaxBlobsPerBlock:      strconv.FormatUint(uint64(params.BeaconConfig().MaxBlobsPerBlockByVersion(v)), 10),
 	})
 }
 

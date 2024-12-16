@@ -20,7 +20,7 @@ import (
 )
 
 func TestBlobStorage_SaveBlobData(t *testing.T) {
-	_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, [32]byte{}, 1, params.BeaconConfig().MaxBlobsPerBlock(1))
+	_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, [32]byte{}, 1, params.BeaconConfig().MaxBlobsPerBlockBySlot(1))
 	testSidecars, err := verification.BlobSidecarSliceNoop(sidecars)
 	require.NoError(t, err)
 
@@ -132,17 +132,17 @@ func TestBlobIndicesBounds(t *testing.T) {
 	fs, bs := NewEphemeralBlobStorageWithFs(t)
 	root := [32]byte{}
 
-	okIdx := uint64(params.BeaconConfig().MaxBlobsPerBlock(0)) - 1
+	okIdx := uint64(params.BeaconConfig().MaxBlobsPerBlockBySlot(0)) - 1
 	writeFakeSSZ(t, fs, root, okIdx)
 	indices, err := bs.Indices(root, 100)
 	require.NoError(t, err)
-	expected := make([]bool, params.BeaconConfig().MaxBlobsPerBlock(0))
+	expected := make([]bool, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
 	expected[okIdx] = true
 	for i := range expected {
 		require.Equal(t, expected[i], indices[i])
 	}
 
-	oobIdx := uint64(params.BeaconConfig().MaxBlobsPerBlock(0))
+	oobIdx := uint64(params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
 	writeFakeSSZ(t, fs, root, oobIdx)
 	_, err = bs.Indices(root, 100)
 	require.ErrorIs(t, err, errIndexOutOfBounds)
@@ -163,7 +163,7 @@ func TestBlobStoragePrune(t *testing.T) {
 	fs, bs := NewEphemeralBlobStorageWithFs(t)
 
 	t.Run("PruneOne", func(t *testing.T) {
-		_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, [32]byte{}, 300, params.BeaconConfig().MaxBlobsPerBlock(0))
+		_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, [32]byte{}, 300, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
 		testSidecars, err := verification.BlobSidecarSliceNoop(sidecars)
 		require.NoError(t, err)
 
@@ -178,7 +178,7 @@ func TestBlobStoragePrune(t *testing.T) {
 		require.Equal(t, 0, len(remainingFolders))
 	})
 	t.Run("Prune dangling blob", func(t *testing.T) {
-		_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, [32]byte{}, 299, params.BeaconConfig().MaxBlobsPerBlock(0))
+		_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, [32]byte{}, 299, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
 		testSidecars, err := verification.BlobSidecarSliceNoop(sidecars)
 		require.NoError(t, err)
 
@@ -198,7 +198,7 @@ func TestBlobStoragePrune(t *testing.T) {
 
 		for j := 0; j <= blockQty; j++ {
 			root := bytesutil.ToBytes32(bytesutil.ToBytes(uint64(slot), 32))
-			_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, root, slot, params.BeaconConfig().MaxBlobsPerBlock(0))
+			_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, root, slot, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
 			testSidecars, err := verification.BlobSidecarSliceNoop(sidecars)
 			require.NoError(t, err)
 			require.NoError(t, bs.Save(testSidecars[0]))
@@ -224,7 +224,7 @@ func BenchmarkPruning(b *testing.B) {
 
 	for j := 0; j <= blockQty; j++ {
 		root := bytesutil.ToBytes32(bytesutil.ToBytes(uint64(slot), 32))
-		_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, root, slot, params.BeaconConfig().MaxBlobsPerBlock(0))
+		_, sidecars := util.GenerateTestDenebBlockWithSidecar(t, root, slot, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
 		testSidecars, err := verification.BlobSidecarSliceNoop(sidecars)
 		require.NoError(t, err)
 		require.NoError(t, bs.Save(testSidecars[0]))

@@ -504,7 +504,7 @@ func (s *Service) runLateBlockTasks() {
 // An empty map means we have all indices; a non-empty map can be used to compare incoming
 // BlobSidecars against the set of known missing sidecars.
 func missingIndices(bs *filesystem.BlobStorage, root [32]byte, expected [][]byte, slot primitives.Slot) (map[uint64]struct{}, error) {
-	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlock(slot)
+	maxBlobsPerBlock := params.BeaconConfig().MaxBlobsPerBlockBySlot(slot)
 	if len(expected) == 0 {
 		return nil, nil
 	}

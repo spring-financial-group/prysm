@@ -9,11 +9,11 @@ import (
 )
 
 func TestSlotByRoot_Summary(t *testing.T) {
-	noneSet := make([]bool, params.BeaconConfig().MaxBlobsPerBlock(0))
-	allSet := make([]bool, params.BeaconConfig().MaxBlobsPerBlock(0))
-	firstSet := make([]bool, params.BeaconConfig().MaxBlobsPerBlock(0))
-	lastSet := make([]bool, params.BeaconConfig().MaxBlobsPerBlock(0))
-	oneSet := make([]bool, params.BeaconConfig().MaxBlobsPerBlock(0))
+	noneSet := make([]bool, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
+	allSet := make([]bool, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
+	firstSet := make([]bool, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
+	lastSet := make([]bool, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
+	oneSet := make([]bool, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
 	firstSet[0] = true
 	lastSet[len(lastSet)-1] = true
 	oneSet[1] = true
@@ -125,13 +125,13 @@ func TestAllAvailable(t *testing.T) {
 		},
 		{
 			name:  "out of bound is safe",
-			count: params.BeaconConfig().MaxBlobsPerBlock(0) + 1,
+			count: params.BeaconConfig().MaxBlobsPerBlockBySlot(0) + 1,
 			aa:    false,
 		},
 		{
 			name:   "max present",
-			count:  params.BeaconConfig().MaxBlobsPerBlock(0),
-			idxSet: idxUpTo(params.BeaconConfig().MaxBlobsPerBlock(0)),
+			count:  params.BeaconConfig().MaxBlobsPerBlockBySlot(0),
+			idxSet: idxUpTo(params.BeaconConfig().MaxBlobsPerBlockBySlot(0)),
 			aa:     true,
 		},
 		{
@@ -143,7 +143,7 @@ func TestAllAvailable(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			mask := make([]bool, params.BeaconConfig().MaxBlobsPerBlock(0))
+			mask := make([]bool, params.BeaconConfig().MaxBlobsPerBlockBySlot(0))
 			for _, idx := range c.idxSet {
 				mask[idx] = true
 			}

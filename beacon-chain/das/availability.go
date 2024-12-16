@@ -152,7 +152,7 @@ func commitmentsToCheck(b blocks.ROBlock, current primitives.Slot) ([][]byte, er
 		return nil, err
 	}
 
-	maxBlobCount := params.BeaconConfig().MaxBlobsPerBlock(b.Block().Slot())
+	maxBlobCount := params.BeaconConfig().MaxBlobsPerBlockBySlot(b.Block().Slot())
 	if len(kzgCommitments) > maxBlobCount {
 		return nil, errIndexOutOfBounds
 	}

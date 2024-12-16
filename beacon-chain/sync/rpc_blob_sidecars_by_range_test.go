@@ -24,7 +24,7 @@ func (c *blobsTestCase) defaultOldestSlotByRange(t *testing.T) types.Slot {
 }
 
 func blobRangeRequestFromSidecars(scs []blocks.ROBlob) interface{} {
-	maxBlobs := params.BeaconConfig().MaxBlobsPerBlock(scs[0].Slot())
+	maxBlobs := params.BeaconConfig().MaxBlobsPerBlockBySlot(scs[0].Slot())
 	count := uint64(len(scs) / maxBlobs)
 	return &ethpb.BlobSidecarsByRangeRequest{
 		StartSlot: scs[0].Slot(),
@@ -134,7 +134,7 @@ func TestBlobByRangeOK(t *testing.T) {
 					Count:     20,
 				}
 			},
-			total: func() *int { x := params.BeaconConfig().MaxBlobsPerBlock(0) * 10; return &x }(), // 10 blocks * 4 blobs = 40
+			total: func() *int { x := params.BeaconConfig().MaxBlobsPerBlockBySlot(0) * 10; return &x }(), // 10 blocks * 4 blobs = 40
 		},
 		{
 			name:    "when request count > MAX_REQUEST_BLOCKS_DENEB, MAX_REQUEST_BLOBS_SIDECARS sidecars in response",

@@ -1,6 +1,7 @@
 package payloadattribute
 
 import (
+	"github.com/prysmaticlabs/prysm/v5/config/params"
 	consensus_types "github.com/prysmaticlabs/prysm/v5/consensus-types"
 	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v5/runtime/version"
@@ -102,6 +103,27 @@ func (a *data) PbV3() (*enginev1.PayloadAttributesV3, error) {
 		SuggestedFeeRecipient: a.suggestedFeeRecipient,
 		Withdrawals:           a.withdrawals,
 		ParentBeaconBlockRoot: a.parentBeaconBlockRoot,
+	}, nil
+}
+
+func (a *data) PbV4() (*enginev1.PayloadAttributesV4, error) {
+	if a == nil {
+		return nil, errNilPayloadAttribute
+	}
+	if a.version < version.Electra {
+		return nil, consensus_types.ErrNotSupported("PbV4", a.version)
+	}
+	if a.timeStamp == 0 && len(a.prevRandao) == 0 && len(a.parentBeaconBlockRoot) == 0 {
+		return nil, nil
+	}
+	return &enginev1.PayloadAttributesV4{
+		Timestamp:             a.timeStamp,
+		PrevRandao:            a.prevRandao,
+		SuggestedFeeRecipient: a.suggestedFeeRecipient,
+		Withdrawals:           a.withdrawals,
+		ParentBeaconBlockRoot: a.parentBeaconBlockRoot,
+		TargetBlobsPerBlock:   uint64(params.BeaconConfig().TargetBlobsPerBlockByVersion(a.version)),
+		MaxBlobsPerBlock:      uint64(params.BeaconConfig().MaxBlobsPerBlockByVersion(a.version)),
 	}, nil
 }
 

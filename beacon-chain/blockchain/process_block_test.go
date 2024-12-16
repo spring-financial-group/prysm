@@ -2206,23 +2206,23 @@ func TestMissingIndices(t *testing.T) {
 		},
 		{
 			name:     "expected exceeds max",
-			expected: fakeCommitments(params.BeaconConfig().MaxBlobsPerBlock(0) + 1),
+			expected: fakeCommitments(params.BeaconConfig().MaxBlobsPerBlockBySlot(0) + 1),
 			err:      errMaxBlobsExceeded,
 		},
 		{
 			name:     "first missing",
-			expected: fakeCommitments(params.BeaconConfig().MaxBlobsPerBlock(0)),
+			expected: fakeCommitments(params.BeaconConfig().MaxBlobsPerBlockBySlot(0)),
 			present:  []uint64{1, 2, 3, 4, 5},
 			result:   fakeResult([]uint64{0}),
 		},
 		{
 			name:     "all missing",
-			expected: fakeCommitments(params.BeaconConfig().MaxBlobsPerBlock(0)),
+			expected: fakeCommitments(params.BeaconConfig().MaxBlobsPerBlockBySlot(0)),
 			result:   fakeResult([]uint64{0, 1, 2, 3, 4, 5}),
 		},
 		{
 			name:     "none missing",
-			expected: fakeCommitments(params.BeaconConfig().MaxBlobsPerBlock(0)),
+			expected: fakeCommitments(params.BeaconConfig().MaxBlobsPerBlockBySlot(0)),
 			present:  []uint64{0, 1, 2, 3, 4, 5},
 			result:   fakeResult([]uint64{}),
 		},

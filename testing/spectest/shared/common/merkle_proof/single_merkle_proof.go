@@ -80,7 +80,7 @@ func runSingleMerkleProofTests(t *testing.T, config, forkOrPhase string, unmarsh
 				if err != nil {
 					return
 				}
-				if index < consensus_blocks.KZGOffset || index > uint64(consensus_blocks.KZGOffset+params.BeaconConfig().MaxBlobsPerBlock(0)) {
+				if index < consensus_blocks.KZGOffset || index > uint64(consensus_blocks.KZGOffset+params.BeaconConfig().MaxBlobsPerBlockBySlot(0)) {
 					return
 				}
 				localProof, err := consensus_blocks.MerkleProofKZGCommitment(body, int(index-consensus_blocks.KZGOffset))
