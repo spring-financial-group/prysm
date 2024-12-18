@@ -74,6 +74,8 @@ func (s *Service) validateLightClientFinalityUpdate(ctx context.Context, pid pee
 		return pubsub.ValidationIgnore, nil
 	}
 
+	msg.ValidatorData = update
+
 	return pubsub.ValidationAccept, nil
 }
 
@@ -123,6 +125,8 @@ func (s *Service) validateLightClientOptimisticUpdate(ctx context.Context, pid p
 	if s.cfg.clock.Now().Before(earliestValidTime) {
 		return pubsub.ValidationIgnore, nil
 	}
+
+	msg.ValidatorData = update
 
 	return pubsub.ValidationAccept, nil
 }
