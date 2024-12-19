@@ -254,6 +254,8 @@ func (s *Service) processLightClientFinalityUpdate(
 	if err != nil {
 		return errors.Wrap(err, "could not create light client finality update")
 	}
+	log.Info("LC: created new finality update post-block")
+	log.Infof("%v", update)
 
 	maxActiveParticipants := update.SyncAggregate().SyncCommitteeBits.Len()
 	numActiveParticipants := update.SyncAggregate().SyncCommitteeBits.Count()
@@ -278,6 +280,7 @@ func (s *Service) processLightClientFinalityUpdate(
 	}
 
 	log.Info("LC: storing new finality update post-block")
+	log.Infof("%v", update)
 	s.lcStore.LastLCFinalityUpdate = update
 
 	if err = s.cfg.P2p.BroadcastLightClientFinalityUpdate(ctx, update); err != nil {
