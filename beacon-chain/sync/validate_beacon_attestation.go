@@ -105,35 +105,6 @@ func (s *Service) validateCommitteeIndexBeaconAttestation(ctx context.Context, p
 		}
 	}
 
-	preState, err := s.cfg.chain.AttestationTargetState(ctx, data.Target)
-	if err != nil {
-		tracing.AnnotateError(span, err)
-		return pubsub.ValidationIgnore, err
-	}
-	committee, err := helpers.BeaconCommitteeFromState(ctx, preState, att.GetData().Slot, committeeIndex)
-	if err != nil {
-		tracing.AnnotateError(span, err)
-		return pubsub.ValidationIgnore, err
-	}
-
-	var singleAtt *eth.SingleAttestation
-	if att.Version() >= version.Electra {
-		singleAtt, ok = att.(*eth.SingleAttestation)
-		if !ok {
-			return pubsub.ValidationIgnore, fmt.Errorf("attestation has wrong type (expected %T, got %T)", &eth.SingleAttestation{}, att)
-		}
-		att = singleAtt.ToAttestationElectra(committee)
-	}
-
-	// Broadcast the unaggregated attestation on a feed to notify other services in the beacon node
-	// of a received unaggregated attestation.
-	s.cfg.attestationNotifier.OperationFeed().Send(&feed.Event{
-		Type: operation.UnaggregatedAttReceived,
-		Data: &operation.UnAggregatedAttReceivedData{
-			Attestation: att,
-		},
-	})
-
 	var validationRes pubsub.ValidationResult
 
 	// Verify the block being voted and the processed state is in beaconDB and the block has passed validation if it's in the beaconDB.
@@ -167,6 +138,26 @@ func (s *Service) validateCommitteeIndexBeaconAttestation(ctx context.Context, p
 		tracing.AnnotateError(span, err)
 		attBadLmdConsistencyCount.Inc()
 		return pubsub.ValidationReject, err
+	}
+
+	preState, err := s.cfg.chain.AttestationTargetState(ctx, data.Target)
+	if err != nil {
+		tracing.AnnotateError(span, err)
+		return pubsub.ValidationIgnore, err
+	}
+	committee, err := helpers.BeaconCommitteeFromState(ctx, preState, att.GetData().Slot, committeeIndex)
+	if err != nil {
+		tracing.AnnotateError(span, err)
+		return pubsub.ValidationIgnore, err
+	}
+
+	var singleAtt *eth.SingleAttestation
+	if att.Version() >= version.Electra {
+		singleAtt, ok = att.(*eth.SingleAttestation)
+		if !ok {
+			return pubsub.ValidationIgnore, fmt.Errorf("attestation has wrong type (expected %T, got %T)", &eth.SingleAttestation{}, att)
+		}
+		att = singleAtt.ToAttestationElectra(committee)
 	}
 
 	validationRes, err = s.validateUnaggregatedAttTopic(ctx, att, preState, *msg.Topic)
@@ -214,6 +205,15 @@ func (s *Service) validateCommitteeIndexBeaconAttestation(ctx context.Context, p
 			s.cfg.slasherAttestationsFeed.Send(&types.WrappedIndexedAtt{IndexedAtt: indexedAtt})
 		}()
 	}
+
+	// Broadcast the unaggregated attestation on a feed to notify other services in the beacon node
+	// of a received unaggregated attestation.
+	s.cfg.attestationNotifier.OperationFeed().Send(&feed.Event{
+		Type: operation.UnaggregatedAttReceived,
+		Data: &operation.UnAggregatedAttReceivedData{
+			Attestation: att,
+		},
+	})
 
 	s.setSeenCommitteeIndicesSlot(data.Slot, committeeIndex, att.GetAggregationBits())
 
