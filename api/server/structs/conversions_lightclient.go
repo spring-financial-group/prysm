@@ -124,10 +124,12 @@ func lightClientHeaderToJSON(header interfaces.LightClientHeader) (json.RawMessa
 
 	var result any
 
-	switch v := header.Version(); v {
-	case version.Altair:
+	v := header.Version()
+
+	switch {
+	case v == version.Altair:
 		result = &LightClientHeader{Beacon: BeaconBlockHeaderFromConsensus(header.Beacon())}
-	case version.Capella:
+	case v == version.Capella:
 		exInterface, err := header.Execution()
 		if err != nil {
 			return nil, err
@@ -149,7 +151,7 @@ func lightClientHeaderToJSON(header interfaces.LightClientHeader) (json.RawMessa
 			Execution:       execution,
 			ExecutionBranch: branchToJSON(executionBranch[:]),
 		}
-	case version.Deneb:
+	case v == version.Deneb:
 		exInterface, err := header.Execution()
 		if err != nil {
 			return nil, err
@@ -171,7 +173,7 @@ func lightClientHeaderToJSON(header interfaces.LightClientHeader) (json.RawMessa
 			Execution:       execution,
 			ExecutionBranch: branchToJSON(executionBranch[:]),
 		}
-	case version.Electra:
+	case v >= version.Electra:
 		exInterface, err := header.Execution()
 		if err != nil {
 			return nil, err

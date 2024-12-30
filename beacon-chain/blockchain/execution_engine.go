@@ -363,8 +363,10 @@ func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState,
 	}
 
 	var attr payloadattribute.Attributer
-	switch st.Version() {
-	case version.Deneb, version.Electra:
+
+	v := st.Version()
+	switch {
+	case v >= version.Deneb:
 		withdrawals, _, err := st.ExpectedWithdrawals()
 		if err != nil {
 			log.WithError(err).Error("Could not get expected withdrawals to get payload attribute")
@@ -381,7 +383,7 @@ func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState,
 			log.WithError(err).Error("Could not get payload attribute")
 			return emptyAttri
 		}
-	case version.Capella:
+	case v == version.Capella:
 		withdrawals, _, err := st.ExpectedWithdrawals()
 		if err != nil {
 			log.WithError(err).Error("Could not get expected withdrawals to get payload attribute")
@@ -397,7 +399,7 @@ func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState,
 			log.WithError(err).Error("Could not get payload attribute")
 			return emptyAttri
 		}
-	case version.Bellatrix:
+	case v == version.Bellatrix:
 		attr, err = payloadattribute.New(&enginev1.PayloadAttributes{
 			Timestamp:             uint64(t.Unix()),
 			PrevRandao:            prevRando,

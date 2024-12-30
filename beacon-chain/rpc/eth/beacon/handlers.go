@@ -368,10 +368,10 @@ func (s *Server) publishBlindedBlockSSZ(ctx context.Context, w http.ResponseWrit
 		s.proposeBlock(ctx, w, genericBlock)
 		return
 	}
-	if versionHeader == version.String(version.Electra) {
+	if versionHeader >= version.String(version.Electra) {
 		httputil.HandleError(
 			w,
-			fmt.Sprintf("Could not decode request body into %s consensus block: %v", version.String(version.Electra), err.Error()),
+			fmt.Sprintf("Could not decode request body into %s consensus block: %v", versionHeader, err.Error()),
 			http.StatusBadRequest,
 		)
 		return
@@ -520,10 +520,10 @@ func (s *Server) publishBlindedBlock(ctx context.Context, w http.ResponseWriter,
 			return
 		}
 	}
-	if versionHeader == version.String(version.Electra) {
+	if versionHeader >= version.String(version.Electra) {
 		httputil.HandleError(
 			w,
-			fmt.Sprintf("Could not decode request body into %s consensus block: %v", version.String(version.Electra), err.Error()),
+			fmt.Sprintf("Could not decode request body into %s consensus block: %v", versionHeader, err.Error()),
 			http.StatusBadRequest,
 		)
 		return
@@ -716,10 +716,10 @@ func (s *Server) publishBlockSSZ(ctx context.Context, w http.ResponseWriter, r *
 		s.proposeBlock(ctx, w, genericBlock)
 		return
 	}
-	if versionHeader == version.String(version.Electra) {
+	if versionHeader >= version.String(version.Electra) {
 		httputil.HandleError(
 			w,
-			fmt.Sprintf("Could not decode request body into %s consensus block: %v", version.String(version.Electra), err.Error()),
+			fmt.Sprintf("Could not decode request body into %s consensus block: %v", versionHeader, err.Error()),
 			http.StatusBadRequest,
 		)
 		return
@@ -889,10 +889,10 @@ func (s *Server) publishBlock(ctx context.Context, w http.ResponseWriter, r *htt
 			return
 		}
 	}
-	if versionHeader == version.String(version.Electra) {
+	if versionHeader >= version.String(version.Electra) {
 		httputil.HandleError(
 			w,
-			fmt.Sprintf("Could not decode request body into %s consensus block: %v", version.String(version.Electra), err.Error()),
+			fmt.Sprintf("Could not decode request body into %s consensus block: %v", versionHeader, err.Error()),
 			http.StatusBadRequest,
 		)
 		return

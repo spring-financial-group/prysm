@@ -8,8 +8,10 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/config/params"
 )
 
-type ExecutionPayloadElectra = ExecutionPayloadDeneb
-type ExecutionPayloadHeaderElectra = ExecutionPayloadHeaderDeneb
+type (
+	ExecutionPayloadElectra       = ExecutionPayloadDeneb
+	ExecutionPayloadHeaderElectra = ExecutionPayloadHeaderDeneb
+)
 
 var (
 	drExample = &DepositRequest{}
