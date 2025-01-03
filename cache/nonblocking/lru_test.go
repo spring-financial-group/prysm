@@ -5,6 +5,7 @@ package nonblocking
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 )
@@ -111,5 +112,131 @@ func TestLRU_Resize(t *testing.T) {
 	}
 	if _, ok := l.Get(4); !ok {
 		t.Errorf("Cache should have contained 2 elements")
+	}
+}
+
+// BenchmarkLRU_Add benchmarks the Add operation with different cache sizes
+func BenchmarkLRU_Add(b *testing.B) {
+	sizes := []int{100, 1000, 10000}
+	for _, size := range sizes {
+		b.Run(fmt.Sprintf("size-%d", size), func(b *testing.B) {
+			cache, _ := NewLRU[int, int](size, nil)
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				cache.Add(i, i)
+			}
+		})
+	}
+}
+
+// BenchmarkLRU_Get benchmarks the Get operation with different cache sizes
+func BenchmarkLRU_Get(b *testing.B) {
+	sizes := []int{100, 1000, 10000}
+	for _, size := range sizes {
+		b.Run(fmt.Sprintf("size-%d", size), func(b *testing.B) {
+			cache, _ := NewLRU[int, int](size, nil)
+			// Pre-populate cache
+			for i := 0; i < size; i++ {
+				cache.Add(i, i)
+			}
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				cache.Get(i % size)
+			}
+		})
+	}
+}
+
+// BenchmarkLRU_AddWithEviction benchmarks Add operation when cache is full
+func BenchmarkLRU_AddWithEviction(b *testing.B) {
+	sizes := []int{100, 1000, 10000}
+	for _, size := range sizes {
+		b.Run(fmt.Sprintf("size-%d", size), func(b *testing.B) {
+			cache, _ := NewLRU[int, int](size, nil)
+			// Pre-populate cache to force evictions
+			for i := 0; i < size; i++ {
+				cache.Add(i, i)
+			}
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				cache.Add(size+i, i)
+			}
+		})
+	}
+}
+
+// BenchmarkLRU_MixedOperations benchmarks a mix of Add and Get operations
+func BenchmarkLRU_MixedOperations(b *testing.B) {
+	sizes := []int{100, 1000, 10000}
+	for _, size := range sizes {
+		b.Run(fmt.Sprintf("size-%d", size), func(b *testing.B) {
+			cache, _ := NewLRU[int, int](size, nil)
+			// Pre-populate half the cache
+			for i := 0; i < size/2; i++ {
+				cache.Add(i, i)
+			}
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				if i%2 == 0 {
+					cache.Add(i, i)
+				} else {
+					cache.Get(i % (size / 2))
+				}
+			}
+		})
+	}
+}
+
+// BenchmarkLRU_ParallelGet benchmarks concurrent Get operations
+func BenchmarkLRU_ParallelGet(b *testing.B) {
+	sizes := []int{100, 1000, 10000}
+	for _, size := range sizes {
+		b.Run(fmt.Sprintf("size-%d", size), func(b *testing.B) {
+			cache, _ := NewLRU[int, int](size, nil)
+			// Pre-populate cache
+			for i := 0; i < size; i++ {
+				cache.Add(i, i)
+			}
+
+			b.ResetTimer()
+			b.RunParallel(func(pb *testing.PB) {
+				i := 0
+				for pb.Next() {
+					cache.Get(i % size)
+					i++
+				}
+			})
+		})
+	}
+}
+
+// BenchmarkLRU_ParallelAddGet benchmarks concurrent Add and Get operations
+func BenchmarkLRU_ParallelAddGet(b *testing.B) {
+	sizes := []int{100, 1000, 10000}
+	for _, size := range sizes {
+		b.Run(fmt.Sprintf("size-%d", size), func(b *testing.B) {
+			cache, _ := NewLRU[int, int](size, nil)
+			// Pre-populate half the cache
+			for i := 0; i < size/2; i++ {
+				cache.Add(i, i)
+			}
+
+			b.ResetTimer()
+			b.RunParallel(func(pb *testing.PB) {
+				i := 0
+				for pb.Next() {
+					if i%2 == 0 {
+						cache.Add(i, i)
+					} else {
+						cache.Get(i % (size / 2))
+					}
+					i++
+				}
+			})
+		})
 	}
 }
