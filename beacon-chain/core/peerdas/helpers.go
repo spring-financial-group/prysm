@@ -633,7 +633,7 @@ func RecoverCellsAndProofs(
 	// Recover cells and compute proofs in parallel.
 	recoveredCellsAndProofs := make([]kzg.CellsAndProofs, blobCount)
 
-	for blobIndex := 0; blobIndex < blobCount; blobIndex++ {
+	for blobIndex := range blobCount {
 		bIndex := blobIndex
 		wg.Go(func() error {
 			start := time.Now()
