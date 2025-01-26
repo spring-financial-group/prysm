@@ -390,9 +390,6 @@ func batchProcessNewPendingDeposits(ctx context.Context, state state.BeaconState
 	// Process each deposit individually
 	for _, pendingDeposit := range pendingDeposits {
 		_, found := pubKeyMap[bytesutil.ToBytes48(pendingDeposit.PublicKey)]
-		if !found {
-			pubKeyMap[bytesutil.ToBytes48(pendingDeposit.PublicKey)] = struct{}{}
-		}
 		validSignature := allSignaturesVerified
 
 		// If batch verification failed, check the individual deposit signature
@@ -420,6 +417,7 @@ func batchProcessNewPendingDeposits(ctx context.Context, state state.BeaconState
 				if err != nil {
 					return errors.Wrap(err, "failed to add validator to registry")
 				}
+				pubKeyMap[bytesutil.ToBytes48(pendingDeposit.PublicKey)] = struct{}{}
 			}
 		}
 	}
