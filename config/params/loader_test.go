@@ -36,6 +36,8 @@ var placeholderFields = []string{
 	"EIP7732_FORK_EPOCH",
 	"EIP7732_FORK_VERSION",
 	"EPOCHS_PER_SHUFFLING_PHASE",
+	"FIELD_ELEMENTS_PER_BLOB",              // Compile time constant.
+	"KZG_COMMITMENT_INCLUSION_PROOF_DEPTH", // Compile time constant on BlobSidecar.commitment_inclusion_proof.
 	"MAX_BLOBS_PER_BLOCK_FULU",
 	"MAX_REQUEST_BLOB_SIDECARS_FULU",
 	"MAX_REQUEST_PAYLOADS", // Compile time constant on BeaconBlockBody.ExecutionRequests
