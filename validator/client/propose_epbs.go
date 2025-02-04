@@ -57,7 +57,7 @@ func (v *validator) SubmitExecutionPayloadEnvelope(ctx context.Context, slot pri
 	}
 	log.WithFields(logrus.Fields{
 		"slot":   slot,
-		"pubkey": fmt.Sprintf("%x", pubKey),
+		"pubkey": fmt.Sprintf("%#x", pubKey),
 	}).Info("Submitting payload envelope")
 
 	proposerIndex, ok := v.pubkeyToStatus[pubKey]
