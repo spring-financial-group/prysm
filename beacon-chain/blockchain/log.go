@@ -113,6 +113,18 @@ func logBlockSyncStatus(block interfaces.ReadOnlyBeaconBlock, blockRoot [32]byte
 			"dataAvailabilityWaitedTime": daWaitedTime,
 			"deposits":                   len(block.Body().Deposits()),
 		}
+		if block.Version() >= version.EPBS {
+			ph, err := block.Body().SignedExecutionPayloadHeader()
+			if err != nil {
+				return err
+			}
+			header, err := ph.Header()
+			if err != nil {
+				return err
+			}
+			hash := header.ParentBlockHash()
+			lf["parentHash"] = fmt.Sprintf("0x%s...", hex.EncodeToString(hash[:])[:8])
+		}
 		log.WithFields(lf).Debug("Synced new block")
 	} else {
 		log.WithFields(logrus.Fields{
