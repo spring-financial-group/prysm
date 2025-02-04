@@ -67,6 +67,21 @@ func GossipTopicMappings(topic string, epoch primitives.Epoch) proto.Message {
 			return &ethpb.SignedAggregateAttestationAndProofElectra{}
 		}
 		return gossipMessage(topic)
+	case PayloadAttestationMessageTopicFormat:
+		if epoch >= params.BeaconConfig().EPBSForkEpoch {
+			return &ethpb.PayloadAttestationMessage{}
+		}
+		return gossipMessage(topic)
+	case SignedExecutionPayloadHeaderTopicFormat:
+		if epoch >= params.BeaconConfig().EPBSForkEpoch {
+			return &enginev1.SignedExecutionPayloadHeader{}
+		}
+		return gossipMessage(topic)
+	case SignedExecutionPayloadEnvelopeTopicFormat:
+		if epoch >= params.BeaconConfig().EPBSForkEpoch {
+			return &enginev1.SignedExecutionPayloadEnvelope{}
+		}
+		return gossipMessage(topic)
 	default:
 		return gossipMessage(topic)
 	}
