@@ -9,7 +9,6 @@ import (
 
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/helpers"
 	lightclient "github.com/prysmaticlabs/prysm/v5/beacon-chain/core/light-client"
-	"github.com/prysmaticlabs/prysm/v5/runtime/version"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
@@ -371,8 +370,13 @@ func (s *Service) getBlockPreState(ctx context.Context, b interfaces.ReadOnlyBea
 	}
 
 	parentRoot := b.ParentRoot()
-
-	if b.Version() >= version.EPBS {
+	s.ForkChoicer().RLock()
+	slot, err := s.ForkChoicer().Slot(parentRoot)
+	s.ForkChoicer().RUnlock()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get slot for parent root")
+	}
+	if slots.ToEpoch(slot) >= params.BeaconConfig().EPBSForkEpoch {
 		s.ForkChoicer().RLock()
 		parentHash := s.ForkChoicer().HashForBlockRoot(parentRoot)
 		s.ForkChoicer().RUnlock()
