@@ -383,7 +383,7 @@ func (s *Service) getBlockPreState(ctx context.Context, b interfaces.ReadOnlyBea
 		if err != nil {
 			return nil, errors.Wrap(err, "could not get execution payload header")
 		}
-		if parentHash == bid.BlockHash() {
+		if parentHash == bid.ParentBlockHash() {
 			// It's based on full, use the state by hash
 			parentRoot = parentHash
 		}
