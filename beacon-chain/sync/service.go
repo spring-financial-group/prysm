@@ -37,6 +37,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/startup"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/state/stategen"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/sync/backfill/coverage"
+	"github.com/prysmaticlabs/prysm/v5/beacon-chain/sync/epbs"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/verification"
 	lruwrpr "github.com/prysmaticlabs/prysm/v5/cache/lru"
 	"github.com/prysmaticlabs/prysm/v5/config/params"
@@ -171,6 +172,7 @@ type Service struct {
 	newPayloadAttestationVerifier       verification.NewPayloadAttestationMsgVerifier
 	newExecutionPayloadEnvelopeVerifier verification.NewExecutionPayloadEnvelopeVerifier
 	newExecutionPayloadHeaderVerifier   verification.NewExecutionPayloadHeaderVerifier
+	pendingExecutionPayloads            *epbs.PayloadPendingQueue
 	availableBlocker                    coverage.AvailableBlocker
 	ctxMap                              ContextByteVersions
 }
@@ -251,6 +253,7 @@ func (s *Service) Start() {
 	s.newBlobVerifier = newBlobVerifierFromInitializer(v)
 	s.newPayloadAttestationVerifier = newPayloadAttestationMessageFromInitializer(v)
 	s.newExecutionPayloadEnvelopeVerifier = newPayloadVerifierFromInitializer(v)
+	s.pendingExecutionPayloads = epbs.NewPayloadPendingQueue()
 
 	go s.verifierRoutine()
 	go s.startTasksPostInitialSync()

@@ -8,6 +8,7 @@ import (
 
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/blockchain"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/transition/interop"
+	"github.com/prysmaticlabs/prysm/v5/beacon-chain/verification"
 	"github.com/prysmaticlabs/prysm/v5/config/features"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/interfaces"
@@ -56,7 +57,8 @@ func (s *Service) beaconBlockSubscriber(ctx context.Context, msg proto.Message) 
 		}
 		return err
 	}
-	return err
+	go s.processPendingPayloads(ctx, root)
+	return nil
 }
 
 // reconstructAndBroadcastBlobs processes and broadcasts blob sidecars for a given beacon block.
@@ -152,4 +154,31 @@ func saveInvalidBlockToTemp(block interfaces.ReadOnlySignedBeaconBlock) {
 	if err := file.WriteFile(fp, enc); err != nil {
 		log.WithError(err).Error("Failed to write to disk")
 	}
+}
+
+func (s *Service) processPendingPayloads(ctx context.Context, root [32]byte) {
+	payload := s.pendingExecutionPayloads.Get(root)
+	if payload == nil {
+		return
+	}
+	e, err := blocks.WrappedROSignedExecutionPayloadEnvelope(payload)
+	if err != nil {
+		log.WithError(err).Error("failed to create read only signed payload execution envelope")
+		return
+	}
+	v := s.newExecutionPayloadEnvelopeVerifier(e, verification.GossipExecutionPayloadEnvelopeRequirements)
+	if err := v.VerifyBlockRootSeen(func([32]byte) bool { return true }); err != nil {
+		// This can't happen
+		return
+	}
+	if _, err := s.validateAfterBlockRootSeen(ctx, payload, v); err != nil {
+		log.WithError(err).Error("failed to validate pending payload")
+		return
+	}
+	if err := s.cfg.chain.ReceiveExecutionPayloadEnvelope(ctx, e, nil); err != nil {
+		log.WithError(err).Error("failed to receive pending payload")
+		return
+	}
+	s.pendingExecutionPayloads.Remove(root)
+	return
 }
