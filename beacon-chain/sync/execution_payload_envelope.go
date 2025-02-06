@@ -2,6 +2,7 @@ package sync
 
 import (
 	"context"
+	"fmt"
 
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -11,6 +12,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/monitoring/tracing"
 	"github.com/prysmaticlabs/prysm/v5/monitoring/tracing/trace"
 	v1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -43,8 +45,24 @@ func (s *Service) validateExecutionPayloadEnvelope(ctx context.Context, pid peer
 	v := s.newExecutionPayloadEnvelopeVerifier(e, verification.GossipExecutionPayloadEnvelopeRequirements)
 
 	if err := v.VerifyBlockRootSeen(s.seenBlockRoot); err != nil {
+		log.WithFields(logrus.Fields{
+			"blockRoot": fmt.Sprintf("%#x", signedEnvelope.Message.BeaconBlockRoot),
+			"blockHash": fmt.Sprintf("%#x", signedEnvelope.Message.Payload.BlockHash),
+			"slot":      signedEnvelope.Message.Slot,
+		}).Debug("inserting pending execution payload")
+		s.pendingExecutionPayloads.Add(signedEnvelope)
 		return pubsub.ValidationIgnore, err
 	}
+	res, err := s.validateAfterBlockRootSeen(ctx, signedEnvelope, v)
+	if err != nil {
+		return res, err
+	}
+	msg.ValidatorData = signedEnvelope
+
+	return pubsub.ValidationAccept, nil
+}
+
+func (s *Service) validateAfterBlockRootSeen(ctx context.Context, signedEnvelope *v1.SignedExecutionPayloadEnvelope, v verification.ExecutionPayloadEnvelopeVerifier) (pubsub.ValidationResult, error) {
 	root := [32]byte(signedEnvelope.Message.BeaconBlockRoot)
 	_, seen := s.payloadEnvelopeCache.Load(root)
 	if seen {
@@ -69,9 +87,6 @@ func (s *Service) validateExecutionPayloadEnvelope(ctx context.Context, pid peer
 		return pubsub.ValidationReject, err
 	}
 	s.payloadEnvelopeCache.Store(root, struct{}{})
-
-	msg.ValidatorData = signedEnvelope
-
 	return pubsub.ValidationAccept, nil
 }
 

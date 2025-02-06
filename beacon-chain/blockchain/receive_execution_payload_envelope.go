@@ -111,15 +111,12 @@ func (s *Service) ReceiveExecutionPayloadEnvelope(ctx context.Context, signed in
 			}).Info("Forkchoice updated with payload attributes for proposal")
 			s.cfg.PayloadIDCache.Set(envelope.Slot()+1, root, pid)
 		}
-		headBlk, err := s.HeadBlock(ctx)
-		if err != nil {
-			log.WithError(err).Error("could not get head block")
-		}
-		if err := s.saveHead(ctx, root, headBlk, preState); err != nil {
-			log.WithError(err).Error("could not save new head")
-		}
-		// update the NSC with the hash for the full block
-		if err := transition.UpdateNextSlotCache(ctx, blockHash[:], preState); err != nil {
+		// simply update the headstate in head
+		s.headLock.Lock()
+		s.head.state = preState.Copy()
+		s.headLock.Unlock()
+		// update the NSC with the hash for the full block, we use the block root as the key
+		if err := transition.UpdateNextSlotCache(ctx, root[:], preState); err != nil {
 			log.WithError(err).Error("could not update next slot cache with payload")
 		}
 
@@ -131,9 +128,10 @@ func (s *Service) ReceiveExecutionPayloadEnvelope(ctx context.Context, signed in
 		return errors.Wrap(err, "could not get execution data")
 	}
 	log.WithFields(logrus.Fields{
-		"slot":      envelope.Slot(),
-		"blockRoot": fmt.Sprintf("%#x", bytesutil.Trunc(root[:])),
-		"blockHash": fmt.Sprintf("%#x", bytesutil.Trunc(ex.BlockHash())),
+		"slot":       envelope.Slot(),
+		"blockRoot":  fmt.Sprintf("%#x", bytesutil.Trunc(root[:])),
+		"blockHash":  fmt.Sprintf("%#x", bytesutil.Trunc(ex.BlockHash())),
+		"ParentHash": fmt.Sprintf("%#x", bytesutil.Trunc(ex.ParentHash())),
 	}).Info("Processed execution payload envelope")
 	return nil
 }
