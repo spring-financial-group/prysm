@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/rs/cors"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Middleware func(http.Handler) http.Handler
@@ -19,6 +21,26 @@ func NormalizeQueryValuesHandler(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+//func TracingHandler(operation string) Middleware {
+//	return func(next http.Handler) http.Handler {
+//		return otelhttp.NewHandler(next, operation)
+//	}
+//}
+
+func TracingHandler() Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if trace.SpanFromContext(r.Context()) == nil {
+				operationName := fmt.Sprintf("validator: %s %s", r.Method, r.URL.Path)
+				handler := otelhttp.NewHandler(next, operationName)
+				handler.ServeHTTP(w, r)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 // CorsHandler sets the cors settings on api endpoints
