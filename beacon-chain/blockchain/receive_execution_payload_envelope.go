@@ -115,8 +115,8 @@ func (s *Service) ReceiveExecutionPayloadEnvelope(ctx context.Context, signed in
 		s.headLock.Lock()
 		s.head.state = preState.Copy()
 		s.headLock.Unlock()
-		// update the NSC with the hash for the full block, we use the block root as the key
-		if err := transition.UpdateNextSlotCache(ctx, root[:], preState); err != nil {
+		// update the NSC with the hash for the full block, we use the block hash as the key
+		if err := transition.UpdateNextSlotCache(ctx, blockHash[:], preState); err != nil {
 			log.WithError(err).Error("could not update next slot cache with payload")
 		}
 
