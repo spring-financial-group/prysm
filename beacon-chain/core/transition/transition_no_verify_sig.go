@@ -9,7 +9,6 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/altair"
 	b "github.com/prysmaticlabs/prysm/v5/beacon-chain/core/blocks"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/epbs"
-	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/transition/interop"
 	v "github.com/prysmaticlabs/prysm/v5/beacon-chain/core/validators"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/blocks"
@@ -63,11 +62,6 @@ func ExecuteStateTransitionNoVerifyAnySig(
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not process slots")
 	}
-	var copied state.BeaconState
-	if signed.Version() >= version.EPBS {
-		copied = st.Copy()
-	}
-
 	// Execute per block transition.
 	set, st, err := ProcessBlockNoVerifyAnySig(ctx, st, signed)
 	if err != nil {
@@ -81,11 +75,6 @@ func ExecuteStateTransitionNoVerifyAnySig(
 	}
 	stateRoot := signed.Block().StateRoot()
 	if !bytes.Equal(postStateRoot[:], stateRoot[:]) {
-		interop.WriteStateToDisk(st)
-		if err := copied.SetSlot(st.Slot() - 1); err != nil {
-			log.Error("could not set slot")
-		}
-		interop.WriteStateToDisk(copied)
 		return nil, nil, fmt.Errorf("could not validate state root, wanted: %#x, received: %#x",
 			postStateRoot[:], signed.Block().StateRoot())
 	}
