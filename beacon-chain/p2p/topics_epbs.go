@@ -1,8 +1,8 @@
 package p2p
 
 const (
-	GossipSignedExecutionPayloadHeader   = "signed_execution_payload_header"
-	GossipSignedExecutionPayloadEnvelope = "signed_execution_payload_envelope"
+	GossipSignedExecutionPayloadHeader   = "execution_payload_header"
+	GossipSignedExecutionPayloadEnvelope = "execution_payload"
 	GossipPayloadAttestationMessage      = "payload_attestation_message"
 
 	SignedExecutionPayloadHeaderTopicFormat   = GossipProtocolAndDigest + GossipSignedExecutionPayloadHeader

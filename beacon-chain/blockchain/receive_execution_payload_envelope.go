@@ -9,6 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/epbs"
+	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/feed"
+	statefeed "github.com/prysmaticlabs/prysm/v5/beacon-chain/core/feed/state"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/transition"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/das"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/execution"
@@ -85,14 +87,14 @@ func (s *Service) ReceiveExecutionPayloadEnvelope(ctx context.Context, signed in
 		log.WithError(err).Error("could not get headroot to compute attributes")
 		return nil
 	}
+	execution, err := envelope.Execution()
+	if err != nil {
+		log.WithError(err).Error("could not get execution data")
+		return nil
+	}
+	blockHash := [32]byte(execution.BlockHash())
 	if bytes.Equal(headRoot, root[:]) {
 		attr := s.getPayloadAttribute(ctx, preState, envelope.Slot()+1, headRoot)
-		execution, err := envelope.Execution()
-		if err != nil {
-			log.WithError(err).Error("could not get execution data")
-			return nil
-		}
-		blockHash := [32]byte(execution.BlockHash())
 		payloadID, err := s.notifyForkchoiceUpdateEPBS(ctx, blockHash, attr)
 		if err != nil {
 			if IsInvalidBlock(err) {
@@ -127,6 +129,18 @@ func (s *Service) ReceiveExecutionPayloadEnvelope(ctx context.Context, signed in
 	if err != nil {
 		return errors.Wrap(err, "could not get execution data")
 	}
+	// Send feed event
+	// Send notification of the processed block to the state feed.
+	s.cfg.StateNotifier.StateFeed().Send(&feed.Event{
+		Type: statefeed.PayloadProcessed,
+		Data: &statefeed.PayloadProcessedData{
+			Slot:                envelope.Slot(),
+			BlockRoot:           root,
+			ExecutionBlockHash:  blockHash,
+			ExecutionOptimistic: !isValidPayload,
+		},
+	})
+
 	log.WithFields(logrus.Fields{
 		"slot":       envelope.Slot(),
 		"blockRoot":  fmt.Sprintf("%#x", bytesutil.Trunc(root[:])),
