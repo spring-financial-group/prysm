@@ -63,7 +63,9 @@ func (s *Service) ReceiveExecutionPayloadEnvelope(ctx context.Context, signed in
 		return err
 	}
 	daStartTime := time.Now()
-	// TODO: Add DA check
+	if err := s.isDataAvailableCore(ctx, envelope.BlobKzgCommitments(), root, envelope.Slot()); err != nil {
+		return errors.Wrap(err, "could not verify data availability")
+	}
 	daWaitedTime := time.Since(daStartTime)
 	dataAvailWaitedTime.Observe(float64(daWaitedTime.Milliseconds()))
 	if err := s.savePostPayload(ctx, signed, preState); err != nil {
@@ -141,10 +143,11 @@ func (s *Service) ReceiveExecutionPayloadEnvelope(ctx context.Context, signed in
 	})
 
 	log.WithFields(logrus.Fields{
-		"slot":       envelope.Slot(),
-		"blockRoot":  fmt.Sprintf("%#x", bytesutil.Trunc(root[:])),
-		"blockHash":  fmt.Sprintf("%#x", bytesutil.Trunc(ex.BlockHash())),
-		"ParentHash": fmt.Sprintf("%#x", bytesutil.Trunc(ex.ParentHash())),
+		"slot":               envelope.Slot(),
+		"blockRoot":          fmt.Sprintf("%#x", bytesutil.Trunc(root[:])),
+		"blockHash":          fmt.Sprintf("%#x", bytesutil.Trunc(ex.BlockHash())),
+		"ParentHash":         fmt.Sprintf("%#x", bytesutil.Trunc(ex.ParentHash())),
+		"KzgCommitmentCount": len(envelope.BlobKzgCommitments()),
 	}).Info("Processed execution payload envelope")
 	return nil
 }

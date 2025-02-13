@@ -26,6 +26,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
+	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
 	"github.com/prysmaticlabs/prysm/v5/monitoring/tracing/trace"
 	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	ethpb "github.com/prysmaticlabs/prysm/v5/proto/prysm/v1alpha1"
@@ -319,6 +320,25 @@ func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSign
 		block, sidecars, err = vs.handleBlindedBlock(ctx, block)
 	} else if block.Version() >= version.Deneb && block.Version() < version.EPBS {
 		sidecars, err = vs.blobSidecarsFromUnblindedBlock(block, req)
+	} else if block.Version() >= version.EPBS {
+		h, err := block.Header()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "Could not get header: %v", err)
+		}
+		commitmentInclusionProof := make([][]byte, 17)
+		for i := range commitmentInclusionProof {
+			commitmentInclusionProof[i] = bytesutil.PadTo([]byte{}, 32)
+		}
+		for i, proof := range vs.blobsBundle.Proofs {
+			sidecars = append(sidecars, &ethpb.BlobSidecar{
+				Index:                    uint64(i),
+				Blob:                     vs.blobsBundle.Blobs[i],
+				KzgCommitment:            vs.blobsBundle.KzgCommitments[i],
+				KzgProof:                 proof,
+				SignedBlockHeader:        h,
+				CommitmentInclusionProof: commitmentInclusionProof, // TODO: add commitment inclusion proof
+			})
+		}
 	}
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "%s: %v", "handle block failed", err)

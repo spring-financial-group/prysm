@@ -575,13 +575,17 @@ func (s *Service) isDataAvailable(ctx context.Context, root [32]byte, signed int
 	if err != nil {
 		return errors.Wrap(err, "could not get KZG commitments")
 	}
-	// expected is the number of kzg commitments observed in the block.
+
+	return s.isDataAvailableCore(ctx, kzgCommitments, root, block.Slot())
+}
+
+func (s *Service) isDataAvailableCore(ctx context.Context, kzgCommitments [][]byte, root [32]byte, slot primitives.Slot) error {
 	expected := len(kzgCommitments)
 	if expected == 0 {
 		return nil
 	}
-	// get a map of BlobSidecar indices that are not currently available.
-	missing, err := missingIndices(s.blobStorage, root, kzgCommitments, block.Slot())
+
+	missing, err := missingIndices(s.blobStorage, root, kzgCommitments, slot)
 	if err != nil {
 		return err
 	}
@@ -592,17 +596,17 @@ func (s *Service) isDataAvailable(ctx context.Context, root [32]byte, signed int
 
 	// The gossip handler for blobs writes the index of each verified blob referencing the given
 	// root to the channel returned by blobNotifiers.forRoot.
-	nc := s.blobNotifiers.forRoot(root, block.Slot())
+	nc := s.blobNotifiers.forRoot(root, slot)
 
 	// Log for DA checks that cross over into the next slot; helpful for debugging.
-	nextSlot := slots.BeginsAt(signed.Block().Slot()+1, s.genesisTime)
+	nextSlot := slots.BeginsAt(slot+1, s.genesisTime)
 	// Avoid logging if DA check is called after next slot start.
 	if nextSlot.After(time.Now()) {
 		nst := time.AfterFunc(time.Until(nextSlot), func() {
 			if len(missing) == 0 {
 				return
 			}
-			log.WithFields(daCheckLogFields(root, signed.Block().Slot(), expected, len(missing))).
+			log.WithFields(daCheckLogFields(root, slot, expected, len(missing))).
 				Error("Still waiting for DA check at slot end.")
 		})
 		defer nst.Stop()
@@ -620,7 +624,7 @@ func (s *Service) isDataAvailable(ctx context.Context, root [32]byte, signed int
 			s.blobNotifiers.delete(root)
 			return nil
 		case <-ctx.Done():
-			return errors.Wrapf(ctx.Err(), "context deadline waiting for blob sidecars slot: %d, BlockRoot: %#x", block.Slot(), root)
+			return errors.Wrapf(ctx.Err(), "context deadline waiting for blob sidecars slot: %d, BlockRoot: %#x", slot, root)
 		}
 	}
 }
