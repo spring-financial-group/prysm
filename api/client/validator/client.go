@@ -8,7 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v5/api/client"
-	"github.com/prysmaticlabs/prysm/v5/monitoring/tracing/trace"
 	"github.com/prysmaticlabs/prysm/v5/validator/rpc"
 )
 
@@ -34,8 +33,6 @@ func NewClient(host string, opts ...client.ClientOpt) (*Client, error) {
 
 // GetValidatorPubKeys gets the current list of web3signer or the local validator public keys in hex format.
 func (c *Client) GetValidatorPubKeys(ctx context.Context) ([]string, error) {
-	ctx, span := trace.StartSpan(ctx, "validator.GetValidatorPubKeys")
-	defer span.End()
 	jsonlocal, err := c.GetLocalValidatorKeys(ctx)
 	if err != nil {
 		return nil, err
@@ -65,8 +62,6 @@ func (c *Client) GetValidatorPubKeys(ctx context.Context) ([]string, error) {
 
 // GetLocalValidatorKeys calls the keymanager APIs for local validator keys
 func (c *Client) GetLocalValidatorKeys(ctx context.Context) (*rpc.ListKeystoresResponse, error) {
-	ctx, span := trace.StartSpan(ctx, "validator.GetLocalValidatorKeys")
-	defer span.End()
 	localBytes, err := c.Get(ctx, localKeysPath, client.WithAuthorizationToken(c.Token()))
 	if err != nil {
 		return nil, err
@@ -80,8 +75,6 @@ func (c *Client) GetLocalValidatorKeys(ctx context.Context) (*rpc.ListKeystoresR
 
 // GetRemoteValidatorKeys calls the keymanager APIs for web3signer validator keys
 func (c *Client) GetRemoteValidatorKeys(ctx context.Context) (*rpc.ListRemoteKeysResponse, error) {
-	ctx, span := trace.StartSpan(ctx, "validator.GetRemoteValidatorKeys")
-	defer span.End()
 	remoteBytes, err := c.Get(ctx, remoteKeysPath, client.WithAuthorizationToken(c.Token()))
 	if err != nil {
 		if !strings.Contains(err.Error(), "Prysm Wallet is not of type Web3Signer") {
@@ -99,8 +92,6 @@ func (c *Client) GetRemoteValidatorKeys(ctx context.Context) (*rpc.ListRemoteKey
 
 // GetFeeRecipientAddresses takes a list of validators in hex format and returns an equal length list of fee recipients in hex format.
 func (c *Client) GetFeeRecipientAddresses(ctx context.Context, validators []string) ([]string, error) {
-	ctx, span := trace.StartSpan(ctx, "validator.GetFeeRecipientAddresses")
-	defer span.End()
 	feeRecipients := make([]string, len(validators))
 	for index, validator := range validators {
 		feejson, err := c.GetFeeRecipientAddress(ctx, validator)
@@ -117,8 +108,6 @@ func (c *Client) GetFeeRecipientAddresses(ctx context.Context, validators []stri
 
 // GetFeeRecipientAddress takes a public key and calls the keymanager API to return its fee recipient.
 func (c *Client) GetFeeRecipientAddress(ctx context.Context, pubkey string) (*rpc.GetFeeRecipientByPubkeyResponse, error) {
-	ctx, span := trace.StartSpan(ctx, "validator.GetFeeRecipientAddress")
-	defer span.End()
 	path := strings.Replace(feeRecipientPath, "{pubkey}", pubkey, 1)
 	b, err := c.Get(ctx, path, client.WithAuthorizationToken(c.Token()))
 	if err != nil {

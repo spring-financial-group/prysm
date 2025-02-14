@@ -18,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v5/network"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var (
@@ -246,7 +247,9 @@ func (p *Proxy) sendHttpRequest(req *http.Request, requestBytes []byte) (*http.R
 	proxyReq.Header.Set("X-Forwarded-For", req.RemoteAddr)
 	proxyReq.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
 	if p.cfg.secret != "" {
 		client = network.NewHttpClientWithSecret(p.cfg.secret, "")
 	}

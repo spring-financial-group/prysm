@@ -9,10 +9,6 @@ import (
 
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -27,7 +23,6 @@ type Client struct {
 	baseURL     *url.URL
 	token       string
 	maxBodySize int64
-	tracer      trace.Tracer
 }
 
 // NewClient constructs a new client with the provided options (ex WithTimeout).
@@ -38,25 +33,12 @@ func NewClient(host string, opts ...ClientOpt) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// Initialize otel tracer
-	tracer := otel.Tracer("")
-	transport := otelhttp.NewTransport(
-		http.DefaultTransport,
-		otelhttp.WithTracerProvider(otel.GetTracerProvider()),
-		otelhttp.WithPropagators(propagation.NewCompositeTextMapPropagator(
-			propagation.TraceContext{},
-			propagation.Baggage{},
-		)),
-	)
-
 	var c = &Client{
 		hc: &http.Client{
-			Transport: transport,
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
 		},
 		baseURL:     u,
 		maxBodySize: MaxBodySize,
-		tracer:      tracer,
 	}
 	for _, o := range opts {
 		o(c)
@@ -98,79 +80,29 @@ func (c *Client) NodeURL() string {
 	return c.baseURL.String()
 }
 
-//func (c *Client) Get(ctx context.Context, path string, opts ...ReqOption) ([]byte, error) {
-//	u := c.baseURL.ResolveReference(&url.URL{Path: path})
-//	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), http.NoBody)
-//	if err != nil {
-//		return nil, err
-//	}
-//	for _, o := range opts {
-//		o(req)
-//	}
-//	r, err := c.hc.Do(req)
-//	if err != nil {
-//		return nil, err
-//	}
-//	defer func() {
-//		err = r.Body.Close()
-//	}()
-//	if r.StatusCode != http.StatusOK {
-//		return nil, Non200Err(r)
-//	}
-//	b, err := io.ReadAll(io.LimitReader(r.Body, c.maxBodySize))
-//	if err != nil {
-//		return nil, errors.Wrap(err, "error reading http response body")
-//	}
-//	return b, nil
-//}
-
 // Get is a generic, opinionated GET function to reduce boilerplate amongst the getters in this package.
 func (c *Client) Get(ctx context.Context, path string, opts ...ReqOption) ([]byte, error) {
-	ctx, span := c.tracer.Start(ctx, "beacon_api_request",
-		trace.WithAttributes(
-			attribute.String("path", path),
-			attribute.String("host", c.baseURL.Host),
-			attribute.String("client.name", "validator"),
-			attribute.String("request.type", "beacon_api"),
-			attribute.String("endpoint", c.baseURL.String()+path),
-		),
-	)
-	defer span.End()
-
 	u := c.baseURL.ResolveReference(&url.URL{Path: path})
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), http.NoBody)
 	if err != nil {
-		span.RecordError(err)
 		return nil, err
 	}
-
 	for _, o := range opts {
 		o(req)
 	}
-
 	r, err := c.hc.Do(req)
 	if err != nil {
-		span.RecordError(err)
 		return nil, err
 	}
 	defer func() {
 		err = r.Body.Close()
 	}()
-
-	// Record response status
-	span.SetAttributes(attribute.Int("http.status_code", r.StatusCode))
 	if r.StatusCode != http.StatusOK {
-		err = Non200Err(r)
-		span.RecordError(err)
-		return nil, err
+		return nil, Non200Err(r)
 	}
-
 	b, err := io.ReadAll(io.LimitReader(r.Body, c.maxBodySize))
 	if err != nil {
-		span.RecordError(err)
 		return nil, errors.Wrap(err, "error reading http response body")
 	}
-
-	span.SetAttributes(attribute.Int("response.size", len(b)))
 	return b, nil
 }

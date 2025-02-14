@@ -24,6 +24,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/runtime/interop"
 	e2e "github.com/prysmaticlabs/prysm/v5/testing/endtoend/params"
 	e2etypes "github.com/prysmaticlabs/prysm/v5/testing/endtoend/types"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"gopkg.in/yaml.v2"
 )
 
@@ -140,7 +141,9 @@ func (w *Web3RemoteSigner) Stop() error {
 
 // monitorStart by polling server until it returns a 200 at /upcheck.
 func (w *Web3RemoteSigner) monitorStart() {
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
 	for {
 		req, err := http.NewRequestWithContext(w.ctx, http.MethodGet, fmt.Sprintf("http://localhost:%d/upcheck", Web3RemoteSignerPort), nil)
 		if err != nil {

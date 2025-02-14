@@ -47,7 +47,6 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/validator/rpc"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 // ValidatorClient defines an instance of an Ethereum validator that manages
@@ -602,7 +601,6 @@ func (c *ValidatorClient) registerRPCService(router *http.ServeMux) error {
 	middlewares := []middleware.Middleware{
 		middleware.NormalizeQueryValuesHandler,
 		middleware.CorsHandler(allowedOrigins),
-		otelhttp.NewMiddleware("validator-http"),
 	}
 	s := rpc.NewServer(c.cliCtx.Context, &rpc.Config{
 		HTTPHost:               host,

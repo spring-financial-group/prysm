@@ -125,10 +125,7 @@ func NewServer(ctx context.Context, cfg *Config) *Server {
 	}
 
 	// Adding AuthTokenHandler to the list of middlewares
-	cfg.Middlewares = append(cfg.Middlewares,
-		server.AuthTokenHandler,
-		middleware.TracingHandler(),
-	)
+	cfg.Middlewares = append(cfg.Middlewares, server.AuthTokenHandler)
 	opts := []httprest.Option{
 		httprest.WithRouter(cfg.Router),
 		httprest.WithHTTPAddr(net.JoinHostPort(server.httpHost, fmt.Sprintf("%d", server.httpPort))),

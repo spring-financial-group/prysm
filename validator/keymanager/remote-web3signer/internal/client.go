@@ -20,6 +20,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/monitoring/tracing"
 	"github.com/prysmaticlabs/prysm/v5/monitoring/tracing/trace"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 const (
@@ -55,8 +56,10 @@ func NewApiClient(baseEndpoint string) (*ApiClient, error) {
 		return nil, fmt.Errorf("web3signer url must be in the format of http(s)://host:port url used: %v", baseEndpoint)
 	}
 	return &ApiClient{
-		BaseURL:    u,
-		RestClient: &http.Client{},
+		BaseURL: u,
+		RestClient: &http.Client{
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+		},
 	}, nil
 }
 
