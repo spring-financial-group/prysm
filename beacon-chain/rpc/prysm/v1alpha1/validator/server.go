@@ -37,6 +37,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
+//
 // Server defines a server implementation of the gRPC Validator service,
 // providing RPC endpoints for obtaining validator assignments per epoch, the slots
 // and committees in which particular validators need to perform their responsibilities,

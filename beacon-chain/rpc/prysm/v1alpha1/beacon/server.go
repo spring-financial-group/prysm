@@ -23,6 +23,8 @@ import (
 	ethpb "github.com/prysmaticlabs/prysm/v5/proto/prysm/v1alpha1"
 )
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
+//
 // Server defines a server implementation of the gRPC Beacon Chain service,
 // providing RPC endpoints to access data relevant to the Ethereum beacon chain.
 type Server struct {

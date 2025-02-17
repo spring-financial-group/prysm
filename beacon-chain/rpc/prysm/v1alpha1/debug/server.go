@@ -20,6 +20,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
+//
 // Server defines a server implementation of the gRPC Debug service,
 // providing RPC endpoints for runtime debugging of a node, this server is
 // gated behind the feature flag --enable-debug-rpc-endpoints.
