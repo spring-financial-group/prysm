@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
 type grpcPrysmChainClient struct {
 	chainClient iface.ChainClient
 }

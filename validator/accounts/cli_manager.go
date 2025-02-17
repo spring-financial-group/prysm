@@ -47,28 +47,31 @@ type CLIManager struct {
 	importPrivateKeys    bool
 	readPasswordFile     bool
 	skipMnemonicConfirm  bool
-	dialOpts             []grpc.DialOption
-	grpcHeaders          []string
-	beaconRPCProvider    string
-	walletKeyCount       int
-	privateKeyFile       string
-	passwordFilePath     string
-	keysDir              string
-	mnemonicLanguage     string
-	backupsDir           string
-	backupsPassword      string
-	filteredPubKeys      []bls.PublicKey
-	rawPubKeys           [][]byte
-	formattedPubKeys     []string
-	exitJSONOutputPath   string
-	walletDir            string
-	walletPassword       string
-	mnemonic             string
-	numAccounts          int
-	mnemonic25thWord     string
-	beaconApiEndpoint    string
-	beaconApiTimeout     time.Duration
-	inputReader          io.Reader
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	dialOpts []grpc.DialOption
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	grpcHeaders []string
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	beaconRPCProvider  string
+	walletKeyCount     int
+	privateKeyFile     string
+	passwordFilePath   string
+	keysDir            string
+	mnemonicLanguage   string
+	backupsDir         string
+	backupsPassword    string
+	filteredPubKeys    []bls.PublicKey
+	rawPubKeys         [][]byte
+	formattedPubKeys   []string
+	exitJSONOutputPath string
+	walletDir          string
+	walletPassword     string
+	mnemonic           string
+	numAccounts        int
+	mnemonic25thWord   string
+	beaconApiEndpoint  string
+	beaconApiTimeout   time.Duration
+	inputReader        io.Reader
 }
 
 func (acm *CLIManager) prepareBeaconClients(ctx context.Context) (*iface.ValidatorClient, *iface.NodeClient, error) {

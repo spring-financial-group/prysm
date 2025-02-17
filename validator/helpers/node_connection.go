@@ -8,6 +8,7 @@ import (
 
 // Use an interface with a private dummy function to force all other packages to call NewNodeConnection
 type NodeConnection interface {
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
 	GetGrpcClientConn() *grpc.ClientConn
 	GetBeaconApiUrl() string
 	GetBeaconApiTimeout() time.Duration
@@ -15,11 +16,13 @@ type NodeConnection interface {
 }
 
 type nodeConnection struct {
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
 	grpcClientConn   *grpc.ClientConn
 	beaconApiUrl     string
 	beaconApiTimeout time.Duration
 }
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
 func (c *nodeConnection) GetGrpcClientConn() *grpc.ClientConn {
 	return c.grpcClientConn
 }

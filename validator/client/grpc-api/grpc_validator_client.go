@@ -18,6 +18,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
 type grpcValidatorClient struct {
 	beaconNodeValidatorClient ethpb.BeaconNodeValidatorClient
 	isEventStreamRunning      bool

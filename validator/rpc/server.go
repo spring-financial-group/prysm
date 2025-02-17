@@ -25,12 +25,17 @@ import (
 
 // Config options for the HTTP server.
 type Config struct {
-	HTTPHost               string
-	HTTPPort               int
+	HTTPHost string
+	HTTPPort int
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
 	GRPCMaxCallRecvMsgSize int
-	GRPCRetries            uint
-	GRPCRetryDelay         time.Duration
-	GRPCHeaders            []string
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	GRPCRetries uint
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	GRPCRetryDelay time.Duration
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	GRPCHeaders []string
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
 	BeaconNodeGRPCEndpoint string
 	BeaconApiEndpoint      string
 	BeaconApiTimeout       time.Duration
@@ -47,36 +52,41 @@ type Config struct {
 
 // Server defining a HTTP server for the remote signer API and registering clients
 type Server struct {
-	ctx                       context.Context
-	cancel                    context.CancelFunc
-	httpHost                  string
-	httpPort                  int
-	server                    *httprest.Server
-	grpcMaxCallRecvMsgSize    int
-	grpcRetries               uint
-	grpcRetryDelay            time.Duration
+	ctx      context.Context
+	cancel   context.CancelFunc
+	httpHost string
+	httpPort int
+	server   *httprest.Server
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	grpcMaxCallRecvMsgSize int
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	grpcRetries uint
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	grpcRetryDelay time.Duration
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
 	grpcHeaders               []string
 	beaconNodeValidatorClient iface.ValidatorClient
 	chainClient               iface.ChainClient
 	nodeClient                iface.NodeClient
 	healthClient              ethpb.HealthClient
-	beaconNodeEndpoint        string
-	beaconApiEndpoint         string
-	beaconApiTimeout          time.Duration
-	beaconNodeCert            string
-	jwtSecret                 []byte
-	authTokenPath             string
-	authToken                 string
-	db                        db.Database
-	walletDir                 string
-	wallet                    *wallet.Wallet
-	walletInitializedFeed     *event.Feed
-	walletInitialized         bool
-	validatorService          *client.ValidatorService
-	router                    *http.ServeMux
-	logStreamer               logs.Streamer
-	logStreamerBufferSize     int
-	startFailure              error
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	beaconNodeEndpoint    string
+	beaconApiEndpoint     string
+	beaconApiTimeout      time.Duration
+	beaconNodeCert        string
+	jwtSecret             []byte
+	authTokenPath         string
+	authToken             string
+	db                    db.Database
+	walletDir             string
+	wallet                *wallet.Wallet
+	walletInitializedFeed *event.Feed
+	walletInitialized     bool
+	validatorService      *client.ValidatorService
+	router                *http.ServeMux
+	logStreamer           logs.Streamer
+	logStreamerBufferSize int
+	startFailure          error
 }
 
 // NewServer instantiates a new HTTP server.

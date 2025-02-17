@@ -50,7 +50,10 @@ type Flags struct {
 	EnableBeaconRESTApi                 bool // EnableBeaconRESTApi enables experimental usage of the beacon REST API by the validator when querying a beacon node
 	DisableCommitteeAwarePacking        bool // DisableCommitteeAwarePacking changes the attestation packing algorithm to one that is not aware of attesting committees.
 	EnableExperimentalAttestationPool   bool // EnableExperimentalAttestationPool enables an experimental attestation pool design.
+
 	// Logging related toggles.
+
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
 	DisableGRPCConnectionLogs bool // Disables logging when a new grpc client has connected.
 	EnableFullSSZDataLogging  bool // Enables logging for full ssz data on rejected gossip messages
 

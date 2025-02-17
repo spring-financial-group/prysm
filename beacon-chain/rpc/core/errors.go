@@ -21,6 +21,7 @@ type RpcError struct {
 	Reason ErrorReason
 }
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
 func ErrorReasonToGRPC(reason ErrorReason) codes.Code {
 	switch reason {
 	case Internal:

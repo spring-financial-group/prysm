@@ -16,8 +16,9 @@ import (
 // providing RPC endpoints for verifying a beacon node's sync status, genesis and
 // version information.
 type Server struct {
-	SyncChecker               sync.Checker
-	OptimisticModeFetcher     blockchain.OptimisticModeFetcher
+	SyncChecker           sync.Checker
+	OptimisticModeFetcher blockchain.OptimisticModeFetcher
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
 	Server                    *grpc.Server
 	BeaconDB                  db.ReadOnlyDatabase
 	PeersFetcher              p2p.PeersProvider

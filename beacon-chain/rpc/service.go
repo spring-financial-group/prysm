@@ -57,16 +57,20 @@ const attestationBufferSize = 100
 
 // Service defining an RPC server for a beacon node.
 type Service struct {
-	cfg                  *Config
-	ctx                  context.Context
-	cancel               context.CancelFunc
-	listener             net.Listener
-	grpcServer           *grpc.Server
-	incomingAttestation  chan *ethpbv1alpha1.Attestation
-	credentialError      error
-	connectedRPCClients  map[net.Addr]bool
+	cfg      *Config
+	ctx      context.Context
+	cancel   context.CancelFunc
+	listener net.Listener
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	grpcServer          *grpc.Server
+	incomingAttestation chan *ethpbv1alpha1.Attestation
+	credentialError     error
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	connectedRPCClients map[net.Addr]bool
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
 	clientConnectionLock sync.Mutex
-	validatorServer      *validatorv1alpha1.Server
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	validatorServer *validatorv1alpha1.Server
 }
 
 // Config options for the beacon node RPC server.
@@ -112,15 +116,16 @@ type Config struct {
 	BlockNotifier             blockfeed.Notifier
 	OperationNotifier         opfeed.Notifier
 	StateGen                  *stategen.State
-	MaxMsgSize                int
-	ExecutionEngineCaller     execution.EngineCaller
-	OptimisticModeFetcher     blockchain.OptimisticModeFetcher
-	BlockBuilder              builder.BlockBuilder
-	Router                    *http.ServeMux
-	ClockWaiter               startup.ClockWaiter
-	BlobStorage               *filesystem.BlobStorage
-	TrackedValidatorsCache    *cache.TrackedValidatorsCache
-	PayloadIDCache            *cache.PayloadIDCache
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	MaxMsgSize             int
+	ExecutionEngineCaller  execution.EngineCaller
+	OptimisticModeFetcher  blockchain.OptimisticModeFetcher
+	BlockBuilder           builder.BlockBuilder
+	Router                 *http.ServeMux
+	ClockWaiter            startup.ClockWaiter
+	BlobStorage            *filesystem.BlobStorage
+	TrackedValidatorsCache *cache.TrackedValidatorsCache
+	PayloadIDCache         *cache.PayloadIDCache
 }
 
 // NewService instantiates a new RPC service instance that will
@@ -369,6 +374,8 @@ func (s *Service) Status() error {
 	return nil
 }
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
+//
 // Stream interceptor for new validator client connections to the beacon node.
 func (s *Service) validatorStreamConnectionInterceptor(
 	srv interface{},
@@ -380,6 +387,8 @@ func (s *Service) validatorStreamConnectionInterceptor(
 	return handler(srv, ss)
 }
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
+//
 // Unary interceptor for new validator client connections to the beacon node.
 func (s *Service) validatorUnaryConnectionInterceptor(
 	ctx context.Context,
@@ -391,6 +400,7 @@ func (s *Service) validatorUnaryConnectionInterceptor(
 	return handler(ctx, req)
 }
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
 func (s *Service) logNewClientConnection(ctx context.Context) {
 	if features.Get().DisableGRPCConnectionLogs {
 		return

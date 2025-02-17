@@ -15,6 +15,7 @@ var (
 	_ = iface.NodeClient(&grpcNodeClient{})
 )
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
 type grpcNodeClient struct {
 	nodeClient    ethpb.NodeClient
 	healthTracker *beacon.NodeHealthTracker

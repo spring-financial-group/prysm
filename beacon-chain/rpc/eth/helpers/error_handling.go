@@ -11,6 +11,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
+//
 // PrepareStateFetchGRPCError returns an appropriate gRPC error based on the supplied argument.
 // The argument error should be a result of fetching state.
 func PrepareStateFetchGRPCError(err error) error {

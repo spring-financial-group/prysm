@@ -241,7 +241,8 @@ var (
 	// GrpcMaxCallRecvMsgSizeFlag defines the max call message size for GRPC
 	GrpcMaxCallRecvMsgSizeFlag = &cli.IntFlag{
 		Name: "grpc-max-msg-size",
-		Usage: `Integer to define max receive message call size (in bytes).
+		Usage: `WARNING: gRPC API is being deprecated in favour of REST API.
+		Integer to define max receive message call size (in bytes).
 		If serving a public gRPC server, set this to a more reasonable size to avoid
 		resource exhaustion from large messages. 
 		Validators with as many as 10000 keys can be run with a max message size of less than 

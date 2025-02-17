@@ -62,14 +62,19 @@ type ValidatorService struct {
 
 // Config for the validator service.
 type Config struct {
-	Validator               iface.Validator
-	DB                      db.Database
-	Wallet                  *wallet.Wallet
-	WalletInitializedFeed   *event.Feed
-	GRPCMaxCallRecvMsgSize  int
-	GRPCRetries             uint
-	GRPCRetryDelay          time.Duration
-	GRPCHeaders             []string
+	Validator             iface.Validator
+	DB                    db.Database
+	Wallet                *wallet.Wallet
+	WalletInitializedFeed *event.Feed
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	GRPCMaxCallRecvMsgSize int
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	GRPCRetries uint
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	GRPCRetryDelay time.Duration
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
+	GRPCHeaders []string
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
 	BeaconNodeGRPCEndpoint  string
 	BeaconNodeCert          string
 	BeaconApiEndpoint       string
@@ -275,6 +280,8 @@ func (v *ValidatorService) SetProposerSettings(ctx context.Context, settings *pr
 	return v.validator.SetProposerSettings(ctx, settings)
 }
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
+//
 // ConstructDialOptions constructs a list of grpc dial options
 func ConstructDialOptions(
 	maxCallRecvMsgSize int,

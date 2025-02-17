@@ -22,6 +22,7 @@ type abstractSignedBlockResponseJson struct {
 }
 
 type streamBlocksAltairClient struct {
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
 	grpc.ClientStream
 	ctx                 context.Context
 	beaconApiClient     *beaconApiValidatorClient

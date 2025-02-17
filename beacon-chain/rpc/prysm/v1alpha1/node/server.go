@@ -40,6 +40,7 @@ type Server struct {
 	LogsStreamer         logs.Streamer
 	StreamLogsBufferSize int
 	SyncChecker          sync.Checker
+	// Deprecated: gRPC API is being deprecated in favour of REST API.
 	Server               *grpc.Server
 	BeaconDB             db.ReadOnlyDatabase
 	PeersFetcher         p2p.PeersProvider

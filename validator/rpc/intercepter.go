@@ -14,6 +14,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Deprecated: gRPC API is being deprecated in favour of REST API.
+//
 // AuthTokenInterceptor is a gRPC unary interceptor to authorize incoming requests.
 func (s *Server) AuthTokenInterceptor() grpc.UnaryServerInterceptor {
 	return func(
