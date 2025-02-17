@@ -33,6 +33,9 @@ var gossipTopicMappings = map[string]func() proto.Message{
 func GossipTopicMappings(topic string, epoch primitives.Epoch) proto.Message {
 	switch topic {
 	case BlockSubnetTopicFormat:
+		if epoch >= params.BeaconConfig().EPBSForkEpoch {
+			return &ethpb.SignedBeaconBlockEpbs{}
+		}
 		if epoch >= params.BeaconConfig().FuluForkEpoch {
 			return &ethpb.SignedBeaconBlockFulu{}
 		}
@@ -140,5 +143,4 @@ func init() {
 	GossipTypeMapping[reflect.TypeOf(&enginev1.SignedExecutionPayloadEnvelope{})] = SignedExecutionPayloadEnvelopeTopicFormat
 	GossipTypeMapping[reflect.TypeOf(&ethpb.PayloadAttestationMessage{})] = PayloadAttestationMessageTopicFormat
 	GossipTypeMapping[reflect.TypeOf(&ethpb.SignedBeaconBlockEpbs{})] = BlockSubnetTopicFormat
-
 }
