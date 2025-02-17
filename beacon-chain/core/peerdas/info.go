@@ -17,28 +17,28 @@ type info struct {
 }
 
 const (
-	cacheSize = 200
-	keySize   = 32 + 8
+	nodeInfoCacheSize   = 200
+	nodeInfoCachKeySize = 32 + 8
 )
 
 var (
-	mut   sync.Mutex
-	cache *lru.Cache
+	nodeInfoCacheMut sync.Mutex
+	nodeInfoCache    *lru.Cache
 )
 
 // Info returns the peerDAS information for a given nodeID and custodyGroupCount.
 // It returns a boolean indicating if the peer info was already in the cache and an error if any.
 func Info(nodeID enode.ID, custodyGroupCount uint64) (*info, bool, error) {
 	// Create a new cache if it doesn't exist.
-	if err := createCacheIfNeeded(); err != nil {
+	if err := createInfoCacheIfNeeded(); err != nil {
 		return nil, false, errors.Wrap(err, "create cache if needed")
 	}
 
 	// Compute the key.
-	key := computeKey(nodeID, custodyGroupCount)
+	key := computeInfoCacheKey(nodeID, custodyGroupCount)
 
 	// If the value is already in the cache, return it.
-	if value, ok := cache.Get(key); ok {
+	if value, ok := nodeInfoCache.Get(key); ok {
 		peerInfo, ok := value.(*info)
 		if !ok {
 			return nil, false, errors.New("failed to cast peer info (should never happen)")
@@ -70,31 +70,31 @@ func Info(nodeID enode.ID, custodyGroupCount uint64) (*info, bool, error) {
 	}
 
 	// Add the result to the cache.
-	cache.Add(key, result)
+	nodeInfoCache.Add(key, result)
 
 	return result, false, nil
 }
 
-// createCacheIfNeeded creates a new cache if it doesn't exist.
-func createCacheIfNeeded() error {
-	mut.Lock()
-	defer mut.Unlock()
+// createInfoCacheIfNeeded creates a new cache if it doesn't exist.
+func createInfoCacheIfNeeded() error {
+	nodeInfoCacheMut.Lock()
+	defer nodeInfoCacheMut.Unlock()
 
-	if cache == nil {
-		c, err := lru.New(cacheSize)
+	if nodeInfoCache == nil {
+		c, err := lru.New(nodeInfoCacheSize)
 		if err != nil {
 			return errors.Wrap(err, "lru new")
 		}
 
-		cache = c
+		nodeInfoCache = c
 	}
 
 	return nil
 }
 
-// computeKey returns a unique key for a node and its custodyGroupCount.
-func computeKey(nodeID enode.ID, custodyGroupCount uint64) [keySize]byte {
-	var key [keySize]byte
+// computeInfoCacheKey returns a unique key for a node and its custodyGroupCount.
+func computeInfoCacheKey(nodeID enode.ID, custodyGroupCount uint64) [nodeInfoCachKeySize]byte {
+	var key [nodeInfoCachKeySize]byte
 
 	copy(key[:32], nodeID[:])
 	binary.BigEndian.PutUint64(key[32:], custodyGroupCount)
