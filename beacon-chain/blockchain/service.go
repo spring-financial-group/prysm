@@ -39,7 +39,9 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v5/encoding/bytesutil"
 	"github.com/prysmaticlabs/prysm/v5/monitoring/tracing/trace"
+	enginev1 "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 	ethpb "github.com/prysmaticlabs/prysm/v5/proto/prysm/v1alpha1"
+	"github.com/prysmaticlabs/prysm/v5/runtime/version"
 	prysmTime "github.com/prysmaticlabs/prysm/v5/time"
 	"github.com/prysmaticlabs/prysm/v5/time/slots"
 )
@@ -315,6 +317,39 @@ func (s *Service) StartFromSavedState(saved state.BeaconState) error {
 	finalizedBlock, err := s.cfg.BeaconDB.Block(s.ctx, fRoot)
 	if err != nil {
 		return errors.Wrap(err, "could not get finalized checkpoint block")
+	}
+	// Hack do deal with the right hash for the genesis block
+	if st.Version() > version.Bellatrix {
+		header, err := st.LatestExecutionPayloadHeader()
+		if err != nil {
+			return errors.Wrap(err, "could not get latest execution payload header")
+		}
+		execution, err := finalizedBlock.Block().Body().Execution()
+		if err != nil {
+			return errors.Wrap(err, "could not get execution")
+		}
+		switch st.Version() {
+		case version.Deneb, version.Electra:
+			bh, ok := execution.Proto().(*enginev1.ExecutionPayloadHeaderDeneb)
+			if !ok {
+				return errors.New("could not convert execution payload header")
+			}
+			bh.BlockHash = header.BlockHash()
+		case version.Capella:
+			bh, ok := execution.Proto().(*enginev1.ExecutionPayloadHeaderCapella)
+			if !ok {
+				return errors.New("could not convert execution payload header")
+			}
+			bh.BlockHash = header.BlockHash()
+		case version.Bellatrix:
+			bh, ok := execution.Proto().(*enginev1.ExecutionPayloadHeader)
+			if !ok {
+				return errors.New("could not convert execution payload header")
+			}
+			bh.BlockHash = header.BlockHash()
+		default:
+			return errors.New("unknown version")
+		}
 	}
 	roblock, err := blocks.NewROBlockWithRoot(finalizedBlock, fRoot)
 	if err != nil {
