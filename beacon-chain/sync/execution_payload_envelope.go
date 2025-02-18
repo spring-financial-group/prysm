@@ -21,6 +21,7 @@ import (
 
 func (s *Service) validateExecutionPayloadEnvelope(ctx context.Context, pid peer.ID, msg *pubsub.Message) (pubsub.ValidationResult, error) {
 	if pid == s.cfg.p2p.PeerID() {
+		log.Info("Received local execution payload envelope")
 		return pubsub.ValidationAccept, nil
 	}
 	if s.cfg.initialSync.Syncing() {
@@ -68,6 +69,10 @@ func (s *Service) validateExecutionPayloadEnvelope(ctx context.Context, pid peer
 	}
 	msg.ValidatorData = signedEnvelope
 
+	log.WithFields(logrus.Fields{
+		"blockRoot": fmt.Sprintf("%#x", signedEnvelope.Message.BeaconBlockRoot),
+		"slot":      signedEnvelope.Message.Slot,
+	}).Debug("Received execution payload envelope")
 	return pubsub.ValidationAccept, nil
 }
 

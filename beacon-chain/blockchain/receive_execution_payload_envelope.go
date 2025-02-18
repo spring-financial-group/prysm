@@ -33,7 +33,6 @@ func (s *Service) ReceiveExecutionPayloadEnvelope(ctx context.Context, signed in
 	if err != nil {
 		return err
 	}
-	log.Info("Receiving execution payload envelope")
 	root := envelope.BeaconBlockRoot()
 	s.payloadBeingSynced.set(envelope)
 	defer s.payloadBeingSynced.unset(root)
