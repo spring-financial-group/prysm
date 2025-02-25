@@ -3,10 +3,12 @@ package p2p
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"io"
 	"net"
 	"sync"
 	"time"
 
+	glog "github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p/discover"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
@@ -456,6 +458,7 @@ func (s *Service) createListener(
 		Bootnodes:               bootNodes,
 		PingInterval:            s.cfg.PingInterval,
 		NoFindnodeLivenessCheck: s.cfg.DisableLivenessCheck,
+		Log:                     glog.NewLogger(glog.NewTerminalHandlerWithLevel(io.Discard, -12, true)),
 	}
 
 	listener, err := discover.ListenV5(conn, localNode, dv5Cfg)
