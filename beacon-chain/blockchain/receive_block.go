@@ -65,6 +65,11 @@ type SlashingReceiver interface {
 func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.ReadOnlySignedBeaconBlock, blockRoot [32]byte, avs das.AvailabilityStore) error {
 	ctx, span := trace.StartSpan(ctx, "blockChain.ReceiveBlock")
 	defer span.End()
+
+	if blockRoot == badHoleskyRoot {
+		return errHoleskyForbiddenRoot
+	}
+
 	// Return early if the block has been synced
 	if s.InForkchoice(blockRoot) {
 		log.WithField("blockRoot", fmt.Sprintf("%#x", blockRoot)).Debug("Ignoring already synced block")
@@ -87,9 +92,6 @@ func (s *Service) ReceiveBlock(ctx context.Context, block interfaces.ReadOnlySig
 	roblock, err := blocks.NewROBlockWithRoot(blockCopy, blockRoot)
 	if err != nil {
 		return err
-	}
-	if roblock.Root() == badHoleskyRoot {
-		return errHoleskyForbiddenRoot
 	}
 
 	postState, isValidPayload, err := s.validateExecutionAndConsensus(ctx, preState, roblock)
