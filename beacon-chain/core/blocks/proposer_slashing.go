@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pion/rtcp"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/helpers"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/signing"
@@ -19,7 +20,8 @@ import (
 type slashValidatorFunc func(
 	ctx context.Context,
 	st state.BeaconState,
-	vid primitives.ValidatorIndex) (state.BeaconState, error)
+	vid primitives.ValidatorIndex,
+	maxEpoch primitives.Epoch, churn uint64) (state.BeaconState, error)
 
 // ProcessProposerSlashings is one of the operations performed
 // on each processed beacon block to slash proposers based on
