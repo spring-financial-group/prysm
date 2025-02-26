@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/helpers"
-	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/validators"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v5/container/slice"
@@ -41,9 +40,10 @@ func ProcessAttesterSlashings(
 	beaconState state.BeaconState,
 	slashings []ethpb.AttSlashing,
 	slashFunc slashValidatorFunc,
+	maxExitEpoch primitives.Epoch,
+	churn uint64,
 ) (state.BeaconState, error) {
 	var err error
-	maxExitEpoch, churn := validators.MaxExitEpochAndChurn(s)
 	for _, slashing := range slashings {
 		beaconState, err = ProcessAttesterSlashing(ctx, beaconState, slashing, slashFunc, maxExitEpoch, churn)
 		if err != nil {
