@@ -168,6 +168,8 @@ func (c *AttCaches) DeleteSeenUnaggregatedAttestations() (int, error) {
 		seen, err := c.hasSeenBit(att)
 		if err != nil {
 			log.WithError(err).Debug("Could not check if attestations bits have been seen")
+			delete(c.unAggregatedAtt, r)
+			count++
 		}
 		if seen {
 			delete(c.unAggregatedAtt, r)
