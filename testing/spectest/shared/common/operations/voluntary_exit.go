@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/snappy"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/blocks"
+	"github.com/prysmaticlabs/prysm/v5/beacon-chain/core/validators"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/v5/testing/require"
@@ -30,7 +31,7 @@ func RunVoluntaryExitTest(t *testing.T, config string, fork string, block blockW
 			blk, err := block(exitSSZ)
 			require.NoError(t, err)
 			RunBlockOperationTest(t, folderPath, blk, sszToState, func(ctx context.Context, s state.BeaconState, b interfaces.ReadOnlySignedBeaconBlock) (state.BeaconState, error) {
-				return blocks.ProcessVoluntaryExits(ctx, s, b.Block().Body().VoluntaryExits())
+				return blocks.ProcessVoluntaryExits(ctx, s, b.Block().Body().VoluntaryExits(), validators.MaxExitEpochAndChurn(s))
 			})
 		})
 	}

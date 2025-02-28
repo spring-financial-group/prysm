@@ -51,8 +51,7 @@ func TestProcessProposerSlashings_UnmatchedHeaderSlots(t *testing.T) {
 		},
 	}
 	want := "mismatched header slots"
-	maxExitEpoch, churn := v.MaxExitEpochAndChurn(beaconState)
-	_, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, b.Block.Body.ProposerSlashings, v.SlashValidator, maxExitEpoch, churn)
+	_, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, b.Block.Body.ProposerSlashings, v.SlashValidator, v.MaxExitEpochAndChurn(beaconState))
 	assert.ErrorContains(t, want, err)
 }
 
@@ -85,8 +84,7 @@ func TestProcessProposerSlashings_SameHeaders(t *testing.T) {
 		},
 	}
 	want := "expected slashing headers to differ"
-	maxExitEpoch, churn := v.MaxExitEpochAndChurn(beaconState)
-	_, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, b.Block.Body.ProposerSlashings, v.SlashValidator, maxExitEpoch, churn)
+	_, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, b.Block.Body.ProposerSlashings, v.SlashValidator, v.MaxExitEpochAndChurn(beaconState))
 	assert.ErrorContains(t, want, err)
 }
 
@@ -136,8 +134,7 @@ func TestProcessProposerSlashings_ValidatorNotSlashable(t *testing.T) {
 		"validator with key %#x is not slashable",
 		bytesutil.ToBytes48(beaconState.Validators()[0].PublicKey),
 	)
-	maxExitEpoch, churn := v.MaxExitEpochAndChurn(beaconState)
-	_, err = blocks.ProcessProposerSlashings(context.Background(), beaconState, b.Block.Body.ProposerSlashings, v.SlashValidator, maxExitEpoch, churn)
+	_, err = blocks.ProcessProposerSlashings(context.Background(), beaconState, b.Block.Body.ProposerSlashings, v.SlashValidator, v.MaxExitEpochAndChurn(beaconState))
 	assert.ErrorContains(t, want, err)
 }
 
@@ -176,8 +173,7 @@ func TestProcessProposerSlashings_AppliesCorrectStatus(t *testing.T) {
 	block := util.NewBeaconBlock()
 	block.Block.Body.ProposerSlashings = slashings
 
-	maxExitEpoch, churn := v.MaxExitEpochAndChurn(beaconState)
-	newState, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, block.Block.Body.ProposerSlashings, v.SlashValidator, maxExitEpoch, churn)
+	newState, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, block.Block.Body.ProposerSlashings, v.SlashValidator, v.MaxExitEpochAndChurn(beaconState))
 	require.NoError(t, err)
 
 	newStateVals := newState.Validators()
@@ -225,8 +221,7 @@ func TestProcessProposerSlashings_AppliesCorrectStatusAltair(t *testing.T) {
 	block := util.NewBeaconBlock()
 	block.Block.Body.ProposerSlashings = slashings
 
-	maxExitEpoch, churn := v.MaxExitEpochAndChurn(beaconState)
-	newState, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, block.Block.Body.ProposerSlashings, v.SlashValidator, maxExitEpoch, churn)
+	newState, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, block.Block.Body.ProposerSlashings, v.SlashValidator, v.MaxExitEpochAndChurn(beaconState))
 	require.NoError(t, err)
 
 	newStateVals := newState.Validators()
@@ -274,8 +269,7 @@ func TestProcessProposerSlashings_AppliesCorrectStatusBellatrix(t *testing.T) {
 	block := util.NewBeaconBlock()
 	block.Block.Body.ProposerSlashings = slashings
 
-	maxExitEpoch, churn := v.MaxExitEpochAndChurn(beaconState)
-	newState, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, block.Block.Body.ProposerSlashings, v.SlashValidator, maxExitEpoch, churn)
+	newState, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, block.Block.Body.ProposerSlashings, v.SlashValidator, v.MaxExitEpochAndChurn(beaconState))
 	require.NoError(t, err)
 
 	newStateVals := newState.Validators()
@@ -323,8 +317,7 @@ func TestProcessProposerSlashings_AppliesCorrectStatusCapella(t *testing.T) {
 	block := util.NewBeaconBlock()
 	block.Block.Body.ProposerSlashings = slashings
 
-	maxExitEpoch, churn := v.MaxExitEpochAndChurn(beaconState)
-	newState, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, block.Block.Body.ProposerSlashings, v.SlashValidator, maxExitEpoch, churn)
+	newState, err := blocks.ProcessProposerSlashings(context.Background(), beaconState, block.Block.Body.ProposerSlashings, v.SlashValidator, v.MaxExitEpochAndChurn(beaconState))
 	require.NoError(t, err)
 
 	newStateVals := newState.Validators()

@@ -10,7 +10,6 @@ import (
 	v "github.com/prysmaticlabs/prysm/v5/beacon-chain/core/validators"
 	"github.com/prysmaticlabs/prysm/v5/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v5/config/params"
-	"github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
 	ethpb "github.com/prysmaticlabs/prysm/v5/proto/prysm/v1alpha1"
 	"github.com/prysmaticlabs/prysm/v5/runtime/version"
 	"github.com/prysmaticlabs/prysm/v5/time/slots"
@@ -50,13 +49,12 @@ func ProcessVoluntaryExits(
 	ctx context.Context,
 	beaconState state.BeaconState,
 	exits []*ethpb.SignedVoluntaryExit,
+	exitData *v.ExitData,
 ) (state.BeaconState, error) {
 	// Avoid calculating the epoch churn if no exits exist.
 	if len(exits) == 0 {
 		return beaconState, nil
 	}
-	maxExitEpoch, churn := v.MaxExitEpochAndChurn(beaconState)
-	var exitEpoch primitives.Epoch
 	for idx, exit := range exits {
 		if exit == nil || exit.Exit == nil {
 			return nil, errors.New("nil voluntary exit in block body")
@@ -68,15 +66,8 @@ func ProcessVoluntaryExits(
 		if err := VerifyExitAndSignature(val, beaconState, exit); err != nil {
 			return nil, errors.Wrapf(err, "could not verify exit %d", idx)
 		}
-		beaconState, exitEpoch, err = v.InitiateValidatorExit(ctx, beaconState, exit.Exit.ValidatorIndex, maxExitEpoch, churn)
-		if err == nil {
-			if exitEpoch > maxExitEpoch {
-				maxExitEpoch = exitEpoch
-				churn = 1
-			} else if exitEpoch == maxExitEpoch {
-				churn++
-			}
-		} else if !errors.Is(err, v.ErrValidatorAlreadyExited) {
+		beaconState, _, err = v.InitiateValidatorExit(ctx, beaconState, exit.Exit.ValidatorIndex, exitData)
+		if !errors.Is(err, v.ErrValidatorAlreadyExited) {
 			return nil, err
 		}
 	}
