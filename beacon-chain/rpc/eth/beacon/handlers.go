@@ -1158,11 +1158,10 @@ func (s *Server) GetBlockRoot(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
 	b32Root := bytesutil.ToBytes32(root)
-	isOptimistic, err := s.OptimisticModeFetcher.IsOptimisticForRoot(ctx, b32Root)
+	isOptimistic, err := s.OptimisticModeFetcher.IsOptimistic(ctx)
 	if err != nil {
-		httputil.HandleError(w, "Could not check if block is optimistic: "+err.Error(), http.StatusInternalServerError)
+		httputil.HandleError(w, "Could not retrieve optimistic status: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	response := &structs.BlockRootResponse{
