@@ -43,7 +43,6 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/interfaces"
 	leakybucket "github.com/prysmaticlabs/prysm/v5/container/leaky-bucket"
-	ethpb "github.com/prysmaticlabs/prysm/v5/proto/prysm/v1alpha1"
 	"github.com/prysmaticlabs/prysm/v5/runtime"
 	prysmTime "github.com/prysmaticlabs/prysm/v5/time"
 	"github.com/prysmaticlabs/prysm/v5/time/slots"
@@ -128,7 +127,7 @@ type Service struct {
 	cancel                           context.CancelFunc
 	slotToPendingBlocks              *gcache.Cache
 	seenPendingBlocks                map[[32]byte]bool
-	blkRootToPendingAtts             map[[32]byte][]ethpb.SignedAggregateAttAndProof
+	blkRootToPendingAtts             map[[32]byte][]any
 	subHandler                       *subTopicHandler
 	pendingAttsLock                  sync.RWMutex
 	pendingQueueLock                 sync.RWMutex
@@ -177,7 +176,7 @@ func NewService(ctx context.Context, opts ...Option) *Service {
 		cfg:                  &config{clock: startup.NewClock(time.Unix(0, 0), [32]byte{})},
 		slotToPendingBlocks:  gcache.New(pendingBlockExpTime /* exp time */, 0 /* disable janitor */),
 		seenPendingBlocks:    make(map[[32]byte]bool),
-		blkRootToPendingAtts: make(map[[32]byte][]ethpb.SignedAggregateAttAndProof),
+		blkRootToPendingAtts: make(map[[32]byte][]any),
 		signatureChan:        make(chan *signatureVerifier, verifierLimit),
 	}
 
@@ -240,7 +239,7 @@ func (s *Service) Start() {
 	})
 	s.cfg.p2p.AddPingMethod(s.sendPingRequest)
 	s.processPendingBlocksQueue()
-	s.processPendingAttsQueue()
+	s.runPendingAttsQueue()
 	s.maintainPeerStatuses()
 	s.resyncIfBehind()
 
