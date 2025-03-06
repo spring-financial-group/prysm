@@ -23,6 +23,7 @@ repos:
         args: [ -w, -s ] # simplify code and write result to (source) file instead of stdout
       - id: go-mod-tidy
         files: go.mod
+      - id: golangci-lint
 
   # Fix bazel build files
   - repo: local

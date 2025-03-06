@@ -175,6 +175,23 @@ $ git push myrepo feature-in-progress-branch -f
 
 **22.  Finally, again leave a comment to the Core Contributors on the pull request to let them know that the pull request has been updated.**
 
+### Git hooks and linters.
+
+Prysm is configured with [pre-commit](https://pre-commit.com) **githooks** that ensures pull
+requests adhere to a minimum standard and are consistent. It is highly recommended running the githooks locally while developing for faster feedback.
+
+To install githooks:
+- Follow installation instructions [here](https://pre-commit.com/#installation) to install the `pre-commit` tool.
+- Once installed, run `pre-commit install` in the project's root directory. This will set up the hooks.
+- Note you can skip the hooks by committing with `-n`: `git commit -n -m "look mom no githooks"`
+
+To update githooks:
+```sh
+pre-commit clean
+```
+
+The **linter** used is [golangci-lint](https://golangci-lint.run/). It runs as part of the githooks and is configured in [.golangci.yml](../.golangci.yml)
+
 ## Maintaining CHANGELOG.md
 
 This project follows the changelog guidelines from [keepachangelog.com](https://keepachangelog.com/en/1.1.0/). In order to minimize conflicts and workflow headaches, we chose to implement a changelog management
