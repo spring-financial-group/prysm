@@ -30,6 +30,8 @@ var (
 	ErrNotCheckpoint = errors.New("not a checkpoint in forkchoice")
 	// ErrNilHead is returned when no head is present in the blockchain service.
 	ErrNilHead = errors.New("nil head")
+	// errBlacklistedBlock is returned when a block is blacklisted as invalid.
+	errBlacklistedRoot = errors.New("block root is blacklisted")
 )
 
 var errMaxBlobsExceeded = errors.New("Expected commitments in block exceeds MAX_BLOBS_PER_BLOCK")
