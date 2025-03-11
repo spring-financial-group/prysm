@@ -58,6 +58,7 @@ type Config struct {
 	ClockWaiter         startup.ClockWaiter
 	InitialSyncComplete chan struct{}
 	BlobStorage         *filesystem.BlobStorage
+	CustodyInfo         *peerdas.CustodyInfo
 }
 
 // Service service.
@@ -352,7 +353,7 @@ func (s *Service) missingColumnRequest(roBlock blocks.ROBlock, store *filesystem
 	nodeID := s.cfg.P2P.NodeID()
 
 	// Get the custody group count.
-	custodyGroupsCount := peerdas.CustodyGroupCount()
+	custodyGroupsCount := s.cfg.CustodyInfo.ActualGroupCount()
 
 	// Retrieve the peer info.
 	peerInfo, _, err := peerdas.Info(nodeID, custodyGroupsCount)
@@ -481,7 +482,7 @@ func (s *Service) fetchOriginColumns(pids []peer.ID) error {
 			return errors.Wrap(err, "data columns align with block")
 		}
 
-		avs := das.NewLazilyPersistentStoreColumn(s.cfg.BlobStorage)
+		avs := das.NewLazilyPersistentStoreColumn(s.cfg.BlobStorage, s.cfg.CustodyInfo)
 		current := s.clock.CurrentSlot()
 		if err := avs.PersistColumns(current, sidecars...); err != nil {
 			return err
@@ -492,7 +493,7 @@ func (s *Service) fetchOriginColumns(pids []peer.ID) error {
 			log.WithField("root", fmt.Sprintf("%#x", r)).WithField("peerID", pids[i]).Warn("Columns from peer for origin block were unusable")
 			continue
 		}
-		log.WithField("nColumns", len(sidecars)).WithField("root", fmt.Sprintf("%#x", r)).Info("Successfully downloaded blobs for checkpoint sync block")
+		log.WithField("nColumns", len(sidecars)).WithField("root", fmt.Sprintf("%#x", r)).Info("Successfully downloaded data columns for checkpoint sync block")
 		return nil
 	}
 	return fmt.Errorf("no connected peer able to provide columns for checkpoint sync block %#x", r)
