@@ -624,7 +624,7 @@ func (v *validator) subscribeToSubnets(ctx context.Context, duties *ethpb.Duties
 				continue
 			}
 
-			aggregator, err := v.isAggregator(ctx, duty.Committee, attesterSlot, pk, validatorIndex)
+			aggregator, err := v.isAggregator(ctx, uint64(len(duty.Committee)), attesterSlot, pk, validatorIndex)
 			if err != nil {
 				return errors.Wrap(err, "could not check if a validator is an aggregator")
 			}
@@ -650,7 +650,7 @@ func (v *validator) subscribeToSubnets(ctx context.Context, duties *ethpb.Duties
 				continue
 			}
 
-			aggregator, err := v.isAggregator(ctx, duty.Committee, attesterSlot, bytesutil.ToBytes48(duty.PublicKey), validatorIndex)
+			aggregator, err := v.isAggregator(ctx, uint64(len(duty.Committee)), attesterSlot, bytesutil.ToBytes48(duty.PublicKey), validatorIndex)
 			if err != nil {
 				return errors.Wrap(err, "could not check if a validator is an aggregator")
 			}
@@ -713,7 +713,7 @@ func (v *validator) RolesAt(ctx context.Context, slot primitives.Slot) (map[[fie
 		if duty.AttesterSlot == slot {
 			roles = append(roles, iface.RoleAttester)
 
-			aggregator, err := v.isAggregator(ctx, duty.Committee, slot, bytesutil.ToBytes48(duty.PublicKey), duty.ValidatorIndex)
+			aggregator, err := v.isAggregator(ctx, uint64(len(duty.Committee)), slot, bytesutil.ToBytes48(duty.PublicKey), duty.ValidatorIndex)
 			if err != nil {
 				aggregator = false
 				log.WithError(err).Errorf("Could not check if validator %#x is an aggregator", bytesutil.Trunc(duty.PublicKey))
@@ -792,7 +792,7 @@ func (v *validator) Keymanager() (keymanager.IKeymanager, error) {
 // it uses a modulo calculated by validator count in committee and samples randomness around it.
 func (v *validator) isAggregator(
 	ctx context.Context,
-	committeeIndex []primitives.ValidatorIndex,
+	committeeLength uint64,
 	slot primitives.Slot,
 	pubKey [fieldparams.BLSPubkeyLength]byte,
 	validatorIndex primitives.ValidatorIndex,
@@ -801,8 +801,8 @@ func (v *validator) isAggregator(
 	defer span.End()
 
 	modulo := uint64(1)
-	if len(committeeIndex)/int(params.BeaconConfig().TargetAggregatorsPerCommittee) > 1 {
-		modulo = uint64(len(committeeIndex)) / params.BeaconConfig().TargetAggregatorsPerCommittee
+	if committeeLength/params.BeaconConfig().TargetAggregatorsPerCommittee > 1 {
+		modulo = committeeLength / params.BeaconConfig().TargetAggregatorsPerCommittee
 	}
 
 	var (
