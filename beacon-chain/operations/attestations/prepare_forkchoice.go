@@ -61,21 +61,31 @@ func (s *Service) batchForkChoiceAtts(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "Operations.attestations.batchForkChoiceAtts")
 	defer span.End()
 
-	var atts []ethpb.Att
+	postElectra := false
+	if slots.ToEpoch(slots.CurrentSlot(s.genesisTime)) >= params.BeaconConfig().ElectraForkEpoch {
+		postElectra = true
+	}
+
+	var attsToAggregate []ethpb.Att
 	if features.Get().EnableExperimentalAttestationPool {
-		atts = append(s.cfg.Cache.GetAll(), s.cfg.Cache.ForkchoiceAttestations()...)
+		attsToAggregate = append(s.cfg.Cache.GetAll(), s.cfg.Cache.ForkchoiceAttestations()...)
 	} else {
 		if err := s.cfg.Pool.AggregateUnaggregatedAttestations(ctx); err != nil {
 			return err
 		}
-		atts = append(s.cfg.Pool.AggregatedAttestations(), s.cfg.Pool.BlockAttestations()...)
-		atts = append(atts, s.cfg.Pool.ForkchoiceAttestations()...)
+		attsToAggregate = append(s.cfg.Pool.AggregatedAttestations(), s.cfg.Pool.ForkchoiceAttestations()...)
+
+		// Post-Electra every block attestation will very likely consist of attestations
+		// for multiple committees and therefore will not be aggregatable.
+		if !postElectra {
+			attsToAggregate = append(attsToAggregate, s.cfg.Pool.BlockAttestations()...)
+		}
 	}
 
-	attsById := make(map[attestation.Id][]ethpb.Att, len(atts))
+	attsById := make(map[attestation.Id][]ethpb.Att, len(attsToAggregate))
 
 	// Consolidate attestations by aggregating them by similar data root.
-	for _, att := range atts {
+	for _, att := range attsToAggregate {
 		seen, err := s.seen(att)
 		if err != nil {
 			return err
@@ -93,6 +103,15 @@ func (s *Service) batchForkChoiceAtts(ctx context.Context) error {
 
 	for _, atts := range attsById {
 		if err := s.aggregateAndSaveForkChoiceAtts(atts); err != nil {
+			return err
+		}
+	}
+
+	// Post-Electra every block attestation will very likely consist of attestations
+	// for multiple committees and therefore will not be aggregatable.
+	// For this reason we save them separately.
+	if postElectra {
+		if err := s.cfg.Pool.SaveForkchoiceAttestations(s.cfg.Pool.BlockAttestations()); err != nil {
 			return err
 		}
 	}
