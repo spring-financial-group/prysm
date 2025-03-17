@@ -118,10 +118,67 @@ func (s *Store) HeadBlock(ctx context.Context) (interfaces.ReadOnlySignedBeaconB
 	return headBlock, err
 }
 
+func (s *Store) blocksAncestryQuery(ctx context.Context, q filters.AncestryQuery) ([]interfaces.ReadOnlySignedBeaconBlock, [][32]byte, error) {
+	blocks := make([]interfaces.ReadOnlySignedBeaconBlock, 0, q.Span())
+	roots := make([][32]byte, 0, q.Span())
+
+	// stop before the descendent slot since it is determined by the query
+	sr, err := s.slotRootsInRange(ctx, q.Earliest, q.Descendent.Slot-1, -1)
+	if err != nil {
+		return nil, nil, err
+	}
+	err = s.db.View(func(tx *bolt.Tx) error {
+		descendent, err := s.getBlock(ctx, q.Descendent.Root, tx)
+		if err != nil {
+			return errors.Wrap(err, "descendent block not in db")
+		}
+		proot := descendent.Block().ParentRoot()
+		lowest := descendent.Block().Slot()
+		blocks = append(blocks, descendent)
+		roots = append(roots, q.Descendent.Root)
+		// slotRootsInRange returns the roots in descending order
+		for _, prev := range sr {
+			if prev.slot < q.Earliest {
+				return nil
+			}
+			if prev.slot >= lowest {
+				continue
+			}
+			if prev.root == proot {
+				p, err := s.getBlock(ctx, prev.root, tx)
+				if err != nil {
+					return err
+				}
+				roots = append(roots, prev.root)
+				blocks = append(blocks, p)
+				proot = p.Block().ParentRoot()
+				lowest = p.Block().Slot()
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	slices.Reverse(roots)
+	slices.Reverse(blocks)
+
+	return blocks, roots, err
+}
+
 // Blocks retrieves a list of beacon blocks and its respective roots by filter criteria.
 func (s *Store) Blocks(ctx context.Context, f *filters.QueryFilter) ([]interfaces.ReadOnlySignedBeaconBlock, [][32]byte, error) {
 	ctx, span := trace.StartSpan(ctx, "BeaconDB.Blocks")
 	defer span.End()
+
+	if q, err := f.GetAncestryQuery(); err == nil {
+		return s.blocksAncestryQuery(ctx, q)
+	} else {
+		if !errors.Is(err, filters.ErrNotSet) {
+			return nil, nil, err
+		}
+	}
+
 	blocks := make([]interfaces.ReadOnlySignedBeaconBlock, 0)
 	blockRoots := make([][32]byte, 0)
 
