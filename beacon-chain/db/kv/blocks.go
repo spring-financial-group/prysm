@@ -118,6 +118,8 @@ func (s *Store) HeadBlock(ctx context.Context) (interfaces.ReadOnlySignedBeaconB
 	return headBlock, err
 }
 
+// blocksAncestryQuery returns all blocks *before* the descendent block;
+// that is: inclusive of q.Earliest, exclusive of q.Descendent.Slot.
 func (s *Store) blocksAncestryQuery(ctx context.Context, q filters.AncestryQuery) ([]interfaces.ReadOnlySignedBeaconBlock, [][32]byte, error) {
 	blocks := make([]interfaces.ReadOnlySignedBeaconBlock, 0, q.Span())
 	roots := make([][32]byte, 0, q.Span())
@@ -134,8 +136,6 @@ func (s *Store) blocksAncestryQuery(ctx context.Context, q filters.AncestryQuery
 		}
 		proot := descendent.Block().ParentRoot()
 		lowest := descendent.Block().Slot()
-		blocks = append(blocks, descendent)
-		roots = append(roots, q.Descendent.Root)
 		// slotRootsInRange returns the roots in descending order
 		for _, prev := range sr {
 			if prev.slot < q.Earliest {
