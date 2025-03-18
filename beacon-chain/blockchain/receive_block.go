@@ -56,6 +56,7 @@ type BlobReceiver interface {
 // data columns
 type DataColumnReceiver interface {
 	ReceiveDataColumn(blocks.VerifiedRODataColumn) error
+	ReceiveDataColumns([]blocks.VerifiedRODataColumn) error
 }
 
 // SlashingReceiver interface defines the methods of chain service for receiving validated slashing over the wire.

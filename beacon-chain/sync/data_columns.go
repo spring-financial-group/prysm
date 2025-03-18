@@ -151,11 +151,14 @@ func RequestDataColumnSidecarsByRoot(
 // and saves them to disk within IsDataAvailable. SaveDataColumns is intended
 // for use when no caching is done (e.g. in the pending blocks queue).
 func SaveDataColumns(sidecars []blocks.RODataColumn, blobStorage *filesystem.BlobStorage) error {
-	for i := range sidecars {
-		verfiedCol := blocks.NewVerifiedRODataColumn(sidecars[i])
-		if err := blobStorage.SaveDataColumn(verfiedCol); err != nil {
-			return err
-		}
+	verifiedRODataColumns := make([]blocks.VerifiedRODataColumn, 0, len(sidecars))
+	for _, sidecar := range sidecars {
+		verifiedRODataColumn := blocks.NewVerifiedRODataColumn(sidecar)
+		verifiedRODataColumns = append(verifiedRODataColumns, verifiedRODataColumn)
+	}
+
+	if err := blobStorage.SaveDataColumnSidecars(verifiedRODataColumns); err != nil {
+		return errors.Wrap(err, "save data column sidecars")
 	}
 
 	return nil

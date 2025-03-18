@@ -114,11 +114,9 @@ func (s *LazilyPersistentStoreColumn) IsDataAvailable(
 		verifiedRODataColumns = append(verifiedRODataColumns, verifiedRODataColumn)
 	}
 
-	// Ensure that each column sidecar is written to disk.
-	for _, verifiedRODataColumn := range verifiedRODataColumns {
-		if err := s.store.SaveDataColumn(verifiedRODataColumn); err != nil {
-			return errors.Wrapf(err, "save data columns for index `%d` for block `%#x`", verifiedRODataColumn.ColumnIndex, blockRoot)
-		}
+	// Ensure that column sidecars are written to disk.
+	if err := s.store.SaveDataColumnSidecars(verifiedRODataColumns); err != nil {
+		return errors.Wrapf(err, "save data column sidecars")
 	}
 
 	// All ColumnSidecars are persisted - data availability check succeeds.

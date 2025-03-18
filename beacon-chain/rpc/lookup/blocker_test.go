@@ -352,13 +352,13 @@ func TestBlobsFromStoredDataColumns(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create verified RO data columns.
-	verifiedRoDataColumns := make([]*blocks.VerifiedRODataColumn, 0, fieldparams.NumberOfColumns)
+	verifiedRoDataColumns := make([]blocks.VerifiedRODataColumn, 0, fieldparams.NumberOfColumns)
 	for _, dataColumnSidecar := range dataColumnSidecars {
 		roDataColumn, err := blocks.NewRODataColumn(dataColumnSidecar)
 		require.NoError(t, err)
 
 		verifiedRoDataColumn := blocks.NewVerifiedRODataColumn(roDataColumn)
-		verifiedRoDataColumns = append(verifiedRoDataColumns, &verifiedRoDataColumn)
+		verifiedRoDataColumns = append(verifiedRoDataColumns, verifiedRoDataColumn)
 	}
 
 	for _, tc := range testCases {
@@ -367,11 +367,14 @@ func TestBlobsFromStoredDataColumns(t *testing.T) {
 			blobStorage := filesystem.NewEphemeralBlobStorage(t)
 
 			// Save the data columns in the store.
+			verifiedRoDataColumnsToSave := make([]blocks.VerifiedRODataColumn, 0, len(tc.storedColumnsIndice))
 			for _, columnIndex := range tc.storedColumnsIndice {
 				verifiedRoDataColumn := verifiedRoDataColumns[columnIndex]
-				err := blobStorage.SaveDataColumn(*verifiedRoDataColumn)
-				require.NoError(t, err)
+				verifiedRoDataColumnsToSave = append(verifiedRoDataColumnsToSave, verifiedRoDataColumn)
 			}
+
+			err := blobStorage.SaveDataColumnSidecars(verifiedRoDataColumnsToSave)
+			require.NoError(t, err)
 
 			// Define the blocker.
 			blocker := &BeaconDbBlocker{
@@ -379,11 +382,11 @@ func TestBlobsFromStoredDataColumns(t *testing.T) {
 			}
 
 			// Get the blobs from the data columns.
-			actual, err := blocker.blobsFromStoredDataColumns(blobsIndex, blockRoot[:])
+			actual, rpcErr := blocker.blobsFromStoredDataColumns(blobsIndex, blockRoot[:])
 			if tc.isError {
-				require.Equal(t, tc.errorReason, err.Reason)
+				require.Equal(t, tc.errorReason, rpcErr.Reason)
 			} else {
-				require.Equal(t, nilError, err)
+				require.Equal(t, nilError, rpcErr)
 				expected := verifiedRoBlobs
 				require.DeepSSZEqual(t, expected, actual)
 			}

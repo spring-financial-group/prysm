@@ -31,32 +31,13 @@ func (s *Service) streamDataColumnBatch(ctx context.Context, batch blockBatch, w
 		// Get the block blockRoot.
 		blockRoot := block.Root()
 
-		// Retrieve stored data columns indices for this block root.
-		summary := s.cfg.blobStorage.Summary(blockRoot)
-		numberOfColumns := params.BeaconConfig().NumberOfColumns
-
-		storedDataColumnsIndices := make(map[uint64]bool, numberOfColumns)
-		for i := range numberOfColumns {
-			if summary.HasDataColumnIndex(i) {
-				storedDataColumnsIndices[i] = true
-			}
+		verifiedRODataColumns, err := s.cfg.blobStorage.GetDataColumnSidecars(blockRoot, wantedDataColumnIndices)
+		if err != nil {
+			s.writeErrorResponseToStream(responseCodeServerError, p2ptypes.ErrGeneric.Error(), stream)
+			return wQuota, errors.Wrapf(err, "get data column sidecars: block root %#x", blockRoot)
 		}
 
-		for _, dataColumnIndex := range wantedDataColumnIndices {
-			isDataColumnStored := storedDataColumnsIndices[dataColumnIndex]
-
-			// Skip if the data column is not stored.
-			if !isDataColumnStored {
-				continue
-			}
-
-			// We won't check for file not found since the .Indices method should normally prevent that from happening.
-			verifiedRODataColumn, err := s.cfg.blobStorage.GetColumn(blockRoot, dataColumnIndex)
-			if err != nil {
-				s.writeErrorResponseToStream(responseCodeServerError, p2ptypes.ErrGeneric.Error(), stream)
-				return wQuota, errors.Wrapf(err, "could not retrieve data column sidecar: index %d, block root %#x", dataColumnIndex, blockRoot)
-			}
-
+		for _, verifiedRODataColumn := range verifiedRODataColumns {
 			SetStreamWriteDeadline(stream, defaultWriteDuration)
 			if chunkErr := WriteDataColumnSidecarChunk(stream, s.cfg.chain, s.cfg.p2p.Encoding(), verifiedRODataColumn.DataColumnSidecar); chunkErr != nil {
 				log.WithError(chunkErr).Debug("Could not send a chunked response")
