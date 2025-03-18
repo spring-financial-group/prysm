@@ -121,6 +121,11 @@ func (s *Store) HeadBlock(ctx context.Context) (interfaces.ReadOnlySignedBeaconB
 // blocksAncestryQuery returns all blocks *before* the descendent block;
 // that is: inclusive of q.Earliest, exclusive of q.Descendent.Slot.
 func (s *Store) blocksAncestryQuery(ctx context.Context, q filters.AncestryQuery) ([]interfaces.ReadOnlySignedBeaconBlock, [][32]byte, error) {
+	// Save resources if no blocks will be found by the query. Since this method does not ever fetch the descendent,
+	// this includes the condition where the earliest block is equal to the descendent.
+	if q.Span() < 1 {
+		return nil, nil, nil
+	}
 	blocks := make([]interfaces.ReadOnlySignedBeaconBlock, 0, q.Span())
 	roots := make([][32]byte, 0, q.Span())
 

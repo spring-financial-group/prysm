@@ -65,6 +65,9 @@ type AncestryQuery struct {
 }
 
 func (aq AncestryQuery) Span() primitives.Slot {
+	if aq.Earliest > aq.Descendent.Slot {
+		return 0
+	}
 	return aq.Descendent.Slot - aq.Earliest
 }
 
