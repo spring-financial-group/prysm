@@ -61,7 +61,6 @@ type AncestryQuery struct {
 	Earliest primitives.Slot
 	// Descendent that all ancestors in chain must descend from.
 	Descendent SlotRoot
-	batchSize  int
 	set        bool
 }
 
@@ -185,7 +184,7 @@ func (q *QueryFilter) SetAncestryQuery(aq AncestryQuery) *QueryFilter {
 }
 
 func (q *QueryFilter) GetAncestryQuery() (AncestryQuery, error) {
-	if q.ancestry.set == false {
+	if !q.ancestry.set {
 		return q.ancestry, ErrNotSet
 	}
 	if len(q.queries) > 0 {
