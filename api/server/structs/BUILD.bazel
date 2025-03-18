@@ -4,8 +4,8 @@ go_library(
     name = "go_default_library",
     srcs = [
         "block.go",
-        "block_execution.go",
         "block_epbs.go",
+        "block_execution.go",
         "conversions.go",
         "conversions_blob.go",
         "conversions_block.go",

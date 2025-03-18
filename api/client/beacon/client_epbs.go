@@ -13,7 +13,7 @@ import (
 // for the named identifiers.
 // The return value contains the ssz-encoded bytes.
 func (c *Client) GetExecutionPayload(ctx context.Context, blockId StateOrBlockId) ([]byte, error) {
-	blockPath := renderGetBlockPath(blockId)
+	blockPath := RenderGetBlockPath(blockId)
 	b, err := c.Get(ctx, blockPath, client.WithSSZEncoding())
 	if err != nil {
 		return nil, errors.Wrapf(err, "error requesting execuction payload by id = %s", blockId)

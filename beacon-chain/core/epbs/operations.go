@@ -95,7 +95,7 @@ func ProcessOperations(
 			return nil, errors.New("nil deposit request")
 		}
 	}
-	st, err = ProcessDepositRequests(ctx, st, requests.Deposits)
+	st, err = electra.ProcessDepositRequests(ctx, st, requests.Deposits)
 	if err != nil {
 		return nil, execReqErr{errors.Wrap(err, "could not process deposit requests")}
 	}
@@ -113,7 +113,7 @@ func ProcessOperations(
 			return nil, errors.New("nil consolidation request")
 		}
 	}
-	if err := ProcessConsolidationRequests(ctx, st, requests.Consolidations); err != nil {
+	if err := electra.ProcessConsolidationRequests(ctx, st, requests.Consolidations); err != nil {
 		return nil, execReqErr{errors.Wrap(err, "could not process consolidation requests")}
 	}
 	return st, nil

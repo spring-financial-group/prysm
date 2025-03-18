@@ -322,7 +322,6 @@ type BeaconChainConfig struct {
 	// Future values to make build happy.
 	EIP7805ForkVersion           []byte           `yaml:"EIP7805_FORK_VERSION" spec:"true"`             // EIP7805ForkVersion is used to represent the fork version for EIP-7805.
 	EIP7805ForkEpoch             primitives.Epoch `yaml:"EIP7805_FORK_EPOCH" spec:"true"`               // EIP7805ForkEpoch is used to represent the assigned fork epoch for EIP-7805.
-	ReorgHeadWeightThreshold     uint64           `yaml:"REORG_HEAD_WEIGHT_THRESHOLD" spec:"true"`      // ReorgHeadWeightThreshold is used to represent the threshold for reorg head weight.
 	WhiskEpochsPerShufflingPhase uint64           `yaml:"WHISK_EPOCHS_PER_SHUFFLING_PHASE" spec:"true"` // WhiskEpochsPerShufflingPhase is used to represent the number of epochs per shuffling phase.
 	WhiskProposerSelectionGap    uint64           `yaml:"WHISK_PROPOSER_SELECTION_GAP" spec:"true"`     // WhiskProposerSelectionGap is used to represent the proposer selection gap.
 	NumberOfCustodyGroups        uint64           `yaml:"NUMBER_OF_CUSTODY_GROUPS" spec:"true"`         // NumberOfCustodyGroups is used to represent the number of custody groups.

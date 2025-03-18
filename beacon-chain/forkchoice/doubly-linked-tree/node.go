@@ -169,8 +169,8 @@ func (n *Node) nodeTreeDump(ctx context.Context, nodes []*forkchoice2.Node) ([]*
 		parentRoot = n.block.parent.block.root
 	}
 	target := [32]byte{}
-	if n.target != nil {
-		target = n.target.root
+	if n.block.target != nil {
+		target = n.block.target.root
 	}
 	thisNode := &forkchoice2.Node{
 		Slot:                     n.block.slot,

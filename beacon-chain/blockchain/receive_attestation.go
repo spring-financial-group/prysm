@@ -167,9 +167,7 @@ func (s *Service) UpdateHead(ctx context.Context, proposingSlot primitives.Slot)
 			log.WithError(err).Error("could not save head")
 			return
 		}
-		if err := s.pruneAttsFromPool(headBlock); err != nil {
-			log.WithError(err).Error("could not prune attestations from pool")
-		}
+		s.pruneAttsFromPool(ctx, headState, headBlock)
 		return
 	}
 	fcuArgs := &fcuConfig{

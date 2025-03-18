@@ -324,6 +324,13 @@ func (f *ForkChoice) HighestReceivedBlockSlot() primitives.Slot {
 	return f.store.highestReceivedNode.block.slot
 }
 
+func (f *ForkChoice) HighestReceivedBlockSlotRoot() (primitives.Slot, [32]byte) {
+	if f.store.highestReceivedNode == nil {
+		return 0, [32]byte{}
+	}
+	return f.store.highestReceivedNode.block.slot, f.store.highestReceivedNode.block.root
+}
+
 // HighestReceivedBlockSlotDelay returns the number of slots that the highest
 // received block was late when receiving it
 func (f *ForkChoice) HighestReceivedBlockDelay() primitives.Slot {

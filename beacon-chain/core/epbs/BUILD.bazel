@@ -4,6 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "attestation.go",
+        "error.go",
         "execution_payload_envelope.go",
         "execution_payload_header.go",
         "operations.go",
